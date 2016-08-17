@@ -1,0 +1,311 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.makenv.mapper.StationDetailMapper">
+  <resultMap id="BaseResultMap" type="com.makenv.domain.StationDetail">
+    <result column="AQI" jdbcType="INTEGER" property="aqi" />
+    <result column="Area" jdbcType="VARCHAR" property="area" />
+    <result column="CO" jdbcType="REAL" property="co" />
+    <result column="CO_24h" jdbcType="REAL" property="co24h" />
+    <result column="ID" jdbcType="INTEGER" property="id" />
+    <result column="Latitude" jdbcType="REAL" property="latitude" />
+    <result column="Longitude" jdbcType="REAL" property="longitude" />
+    <result column="NO2" jdbcType="REAL" property="no2" />
+    <result column="NO2_24h" jdbcType="REAL" property="no224h" />
+    <result column="O3" jdbcType="REAL" property="o3" />
+    <result column="O3_24h" jdbcType="REAL" property="o324h" />
+    <result column="O3_8h" jdbcType="REAL" property="o38h" />
+    <result column="O3_8h_24h" jdbcType="REAL" property="o38h24h" />
+    <result column="OrderId" jdbcType="INTEGER" property="orderid" />
+    <result column="PM10" jdbcType="REAL" property="pm10" />
+    <result column="PM10_24h" jdbcType="REAL" property="pm1024h" />
+    <result column="PM2_5" jdbcType="REAL" property="pm25" />
+    <result column="PM2_5_24h" jdbcType="REAL" property="pm2524h" />
+    <result column="PositionName" jdbcType="VARCHAR" property="positionname" />
+    <result column="PrimaryPollutant" jdbcType="VARCHAR" property="primarypollutant" />
+    <result column="Quality" jdbcType="VARCHAR" property="quality" />
+    <result column="SO2" jdbcType="REAL" property="so2" />
+    <result column="SO2_24h" jdbcType="REAL" property="so224h" />
+    <result column="StationCode" jdbcType="VARCHAR" property="stationcode" />
+    <result column="TimePoint" jdbcType="TIMESTAMP" property="timepoint" />
+  </resultMap>
+
+  <sql id="allColumn">
+    AQI, Area, CO, CO_24h,
+    ID, Latitude, Longitude,
+    NO2, NO2_24h, O3, O3_24h,
+    O3_8h, O3_8h_24h, OrderId, PM10,
+    PM10_24h, PM2_5, PM2_5_24h, PositionName,
+    PrimaryPollutant, Quality, SO2,
+    SO2_24h, StationCode, TimePoint
+
+  </sql>
+
+  <insert id="insert" parameterType="com.makenv.domain.StationDetail">
+    insert into PM_25 (AQI, Area, CO, CO_24h, 
+      ID, Latitude, Longitude, 
+      NO2, NO2_24h, O3, O3_24h, 
+      O3_8h, O3_8h_24h, OrderId, PM10, 
+      PM10_24h, PM2_5, PM2_5_24h, PositionName, 
+      PrimaryPollutant, Quality, SO2, 
+      SO2_24h, StationCode, TimePoint
+      )
+    values (#{aqi,jdbcType=INTEGER}, #{area,jdbcType=VARCHAR}, #{co,jdbcType=REAL}, #{co24h,jdbcType=REAL}, 
+      #{id,jdbcType=INTEGER}, #{latitude,jdbcType=REAL}, #{longitude,jdbcType=REAL}, 
+      #{no2,jdbcType=REAL}, #{no224h,jdbcType=REAL}, #{o3,jdbcType=REAL}, #{o324h,jdbcType=REAL}, 
+      #{o38h,jdbcType=REAL}, #{o38h24h,jdbcType=REAL}, #{orderid,jdbcType=INTEGER}, #{pm10,jdbcType=REAL}, 
+      #{pm1024h,jdbcType=REAL}, #{pm25,jdbcType=REAL}, #{pm2524h,jdbcType=REAL}, #{positionname,jdbcType=VARCHAR}, 
+      #{primarypollutant,jdbcType=VARCHAR}, #{quality,jdbcType=VARCHAR}, #{so2,jdbcType=REAL}, 
+      #{so224h,jdbcType=REAL}, #{stationcode,jdbcType=VARCHAR}, #{timepoint,jdbcType=TIMESTAMP}
+      )
+  </insert>
+  <insert id="insertSelective" parameterType="com.makenv.domain.StationDetail">
+    insert into PM_25
+    <trim prefix="(" suffix=")" suffixOverrides=",">
+      <if test="aqi != null">
+        AQI,
+      </if>
+      <if test="area != null">
+        Area,
+      </if>
+      <if test="co != null">
+        CO,
+      </if>
+      <if test="co24h != null">
+        CO_24h,
+      </if>
+      <if test="id != null">
+        ID,
+      </if>
+      <if test="latitude != null">
+        Latitude,
+      </if>
+      <if test="longitude != null">
+        Longitude,
+      </if>
+      <if test="no2 != null">
+        NO2,
+      </if>
+      <if test="no224h != null">
+        NO2_24h,
+      </if>
+      <if test="o3 != null">
+        O3,
+      </if>
+      <if test="o324h != null">
+        O3_24h,
+      </if>
+      <if test="o38h != null">
+        O3_8h,
+      </if>
+      <if test="o38h24h != null">
+        O3_8h_24h,
+      </if>
+      <if test="orderid != null">
+        OrderId,
+      </if>
+      <if test="pm10 != null">
+        PM10,
+      </if>
+      <if test="pm1024h != null">
+        PM10_24h,
+      </if>
+      <if test="pm25 != null">
+        PM2_5,
+      </if>
+      <if test="pm2524h != null">
+        PM2_5_24h,
+      </if>
+      <if test="positionname != null">
+        PositionName,
+      </if>
+      <if test="primarypollutant != null">
+        PrimaryPollutant,
+      </if>
+      <if test="quality != null">
+        Quality,
+      </if>
+      <if test="so2 != null">
+        SO2,
+      </if>
+      <if test="so224h != null">
+        SO2_24h,
+      </if>
+      <if test="stationcode != null">
+        StationCode,
+      </if>
+      <if test="timepoint != null">
+        TimePoint,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides=",">
+      <if test="aqi != null">
+        #{aqi,jdbcType=INTEGER},
+      </if>
+      <if test="area != null">
+        #{area,jdbcType=VARCHAR},
+      </if>
+      <if test="co != null">
+        #{co,jdbcType=REAL},
+      </if>
+      <if test="co24h != null">
+        #{co24h,jdbcType=REAL},
+      </if>
+      <if test="id != null">
+        #{id,jdbcType=INTEGER},
+      </if>
+      <if test="latitude != null">
+        #{latitude,jdbcType=REAL},
+      </if>
+      <if test="longitude != null">
+        #{longitude,jdbcType=REAL},
+      </if>
+      <if test="no2 != null">
+        #{no2,jdbcType=REAL},
+      </if>
+      <if test="no224h != null">
+        #{no224h,jdbcType=REAL},
+      </if>
+      <if test="o3 != null">
+        #{o3,jdbcType=REAL},
+      </if>
+      <if test="o324h != null">
+        #{o324h,jdbcType=REAL},
+      </if>
+      <if test="o38h != null">
+        #{o38h,jdbcType=REAL},
+      </if>
+      <if test="o38h24h != null">
+        #{o38h24h,jdbcType=REAL},
+      </if>
+      <if test="orderid != null">
+        #{orderid,jdbcType=INTEGER},
+      </if>
+      <if test="pm10 != null">
+        #{pm10,jdbcType=REAL},
+      </if>
+      <if test="pm1024h != null">
+        #{pm1024h,jdbcType=REAL},
+      </if>
+      <if test="pm25 != null">
+        #{pm25,jdbcType=REAL},
+      </if>
+      <if test="pm2524h != null">
+        #{pm2524h,jdbcType=REAL},
+      </if>
+      <if test="positionname != null">
+        #{positionname,jdbcType=VARCHAR},
+      </if>
+      <if test="primarypollutant != null">
+        #{primarypollutant,jdbcType=VARCHAR},
+      </if>
+      <if test="quality != null">
+        #{quality,jdbcType=VARCHAR},
+      </if>
+      <if test="so2 != null">
+        #{so2,jdbcType=REAL},
+      </if>
+      <if test="so224h != null">
+        #{so224h,jdbcType=REAL},
+      </if>
+      <if test="stationcode != null">
+        #{stationcode,jdbcType=VARCHAR},
+      </if>
+      <if test="timepoint != null">
+        #{timepoint,jdbcType=TIMESTAMP},
+      </if>
+    </trim>
+  </insert>
+
+  <!--按时间段进行查询 包括偷头时间不包括尾时间-->
+  <select id="selectStationDetailByTimeInterval" parameterType="Map" resultMap="BaseResultMap">
+    select
+    <include refid="allColumn"/>
+    from PM_25 where TimePoint &gt;= #{startTime} and TimePoint &lt; #{endTime}
+  </select>
+
+  <select id="selectAvgRange" resultType="map">
+    SELECT
+      stationCode,
+      AREA,
+      AVG(SO2) AS SO2,
+      AVG(NO2) AS NO2,
+      AVG(PM2_5) AS PM2_5,
+      AVG(PM10) AS PM10,
+      AVG(CO) AS CO,
+      AVG(O3_8h) AS O3_8h,
+      AVG(AQI) AS AQI,
+      AVG(O3) AS O3
+    FROM PM_25 p LEFT JOIN pm_station s ON p.stationCode = s.stationId
+    WHERE YEAR(p.timepoint) = 2014 AND s.longitude BETWEEN #{lonMin} AND #{lonMax}
+    AND s.latitude BETWEEN #{latMin} AND #{latMax} GROUP BY Area
+
+  </select>
+
+  <select id="selectByYearResultByProvince" resultType="map">
+    SELECT
+      AVG(SO2) AS SO2,
+      AVG(NO2) AS NO2,
+      AVG(PM2_5) AS PM2_5,
+      AVG(PM10) AS PM10,
+      AVG(CO) AS CO,
+      AVG(O3_8h) AS O3_8h,
+      AVG(AQI) AS AQI,
+      AVG(O3) AS O3
+    FROM ${tableName} where YEAR(TimePoint) = #{year}
+    and StationCode in
+    <foreach item="station" collection="#{stationList}" open="(" close=")" separator=",">
+      #{station.stationId}
+    </foreach>
+
+  </select>
+
+  <select id="selectByYearResultByCity" resultType="map">
+
+    SELECT
+      AVG(SO2) AS SO2,
+      AVG(NO2) AS NO2,
+      AVG(PM2_5) AS PM2_5,
+      AVG(PM10) AS PM10,
+      AVG(CO) AS CO,
+      AVG(O3_8h) AS O3_8h,
+      AVG(AQI) AS AQI,
+      AVG(O3) AS O3
+    FROM ${tableName} where YEAR(TimePoint) = #{year}
+    and StationCode in
+      <foreach item="station" collection="stationList" open="(" close=")" separator=",">
+        #{station.stationId}
+      </foreach>
+  </select>
+
+  <select id="selectOverStandardGroupByDate" resultType="map">
+
+    select
+      sum(SO2) as SO2,
+      sum(NO2) as NO2,
+      sum(PM2_5) as PM2_5,
+      sum(PM10) as PM10,
+      sum(CO) as CO,
+      sum(O3_8h) as O3_8h,
+      sum(O3) as O3 from
+      (
+          select
+            AVG(SO2)>150 as SO2 ,
+            AVG(NO2)>80 as NO2 ,
+            AVG(PM2_5)>75 as PM2_5 ,
+            AVG(PM10)>150 as PM10 ,
+            AVG(CO)>4 as CO ,
+            MAX(O3_8h)>160 as O3_8h,
+            MAX(O3)>200 as O3
+          from ${tableName} where YEAR(TimePoint) = #{year}
+          and StationCode in
+          <foreach item="station" collection="stationList" open="(" close=")" separator=",">
+            #{station.stationId}
+          </foreach>
+          group by DATE(TimePoint) )As t
+  </select>
+
+ <!-- <select id="selectByYearResultCounty" resultType="">
+
+  </select>-->
+
+</mapper>
