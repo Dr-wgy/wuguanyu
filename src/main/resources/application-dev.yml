@@ -4,6 +4,9 @@ server:
 logging:
   path: D:\ideaworkspace\obs\logs
 spring:
+  jackson:
+    serialization:
+      WRITE_DATES_AS_TIMESTAMPS: false
   datasource:
     url: jdbc:mysql://127.0.0.1:3306/china?allowMultiQueries=true&autoReconnect=true&useUnicode=true&characterEncoding=UTF-8
     username: root

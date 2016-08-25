@@ -84,4 +84,33 @@ public class RegionUtils {
 
         return map;
     }
+
+    //转换代码
+    public static String convertRegionCode(String regionCode){
+
+        if(regionCode != null && regionCode.length()!= 0) {
+
+            if(regionCode.length()== 6) {
+
+                if(regionCode.endsWith("0000")){
+
+                    return regionCode.substring(0,2);
+                }
+                else if (regionCode.endsWith("00")){
+
+                    return regionCode.substring(0,4);
+                }
+            }
+            else if(regionCode.length()== 4) {
+
+                if (regionCode.endsWith("00")){
+
+                    return regionCode.substring(0,2);
+                }
+            }
+        }
+
+        return regionCode;
+
+    }
 }

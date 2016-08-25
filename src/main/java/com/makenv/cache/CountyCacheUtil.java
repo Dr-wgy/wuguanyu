@@ -1,5 +1,8 @@
 package com.makenv.cache;
 
+import com.makenv.vo.CityVo;
+import com.makenv.vo.CountyVo;
+
 import java.util.List;
 import java.util.Map;
 
@@ -27,14 +30,19 @@ public class CountyCacheUtil {
     }
 
 
-    public List<Map<String, Object>> getCountyList() {
+    public List<CountyVo> getCountyList() {
         return countyList;
     }
 
-    public void setCountyList(List<Map<String, Object>> countyList) {
+    public void setCountyList(List<CountyVo> countyList) {
         this.countyList = countyList;
     }
 
-    private List<Map<String,Object>> countyList;
+    private List<CountyVo> countyList;
+
+    public CountyVo getCountyByRegionCode(String regionCode){
+
+        return this.countyList.stream().filter(county->(county!= null && county.getRegionId()!=null)?county.getRegionId().equals(regionCode):false).findFirst().orElse(null);
+    }
 
 }

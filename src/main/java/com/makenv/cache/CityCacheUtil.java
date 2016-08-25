@@ -3,6 +3,7 @@ package com.makenv.cache;
 
 
 import com.makenv.domain.City;
+import com.makenv.vo.CityVo;
 
 import java.util.List;
 import java.util.Map;
@@ -31,14 +32,34 @@ public class CityCacheUtil {
     }
 
 
-    public List<Map<String,Object>> getCityList() {
+    public List<CityVo> getCityList() {
         return cityList;
     }
 
-    public void setCityList(List<Map<String,Object>> cityList) {
+    public void setCityList(List<CityVo> cityList) {
         this.cityList = cityList;
     }
 
-    private List<Map<String,Object>> cityList;
+    private List<CityVo> cityList;
+
+    public CityVo getCityByRegionCode(String regionCode){
+
+        return this.cityList.stream().filter(city->(city!= null && city.getRegionId()!=null)?city.getRegionId().startsWith(regionCode):false).findFirst().orElse(null);
+    }
+
+    public String getRegionCode(String area){
+
+       CityVo cityVo = this.cityList.stream().filter(
+               city ->(city != null && city.getRegionName()!=null)?city.getRegionName().startsWith(area):false)
+               .findFirst().orElse(null);
+
+        if( cityVo != null) {
+
+            return cityVo.getRegionId();
+
+        }
+
+        return null;
+    }
 
 }

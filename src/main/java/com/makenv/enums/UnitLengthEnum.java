@@ -3,7 +3,7 @@ package com.makenv.enums;
 /**
  * Created by wgy on 2016/8/15.
  */
-public enum  UnitEnum {
+public enum UnitLengthEnum {
 
     KIlOMETER("km","千米");
 
@@ -24,7 +24,7 @@ public enum  UnitEnum {
 
     private String describe;
 
-    private UnitEnum(String name, String describe) {
+    private UnitLengthEnum(String name, String describe) {
 
         this.name = name;
 

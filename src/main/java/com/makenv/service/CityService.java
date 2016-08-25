@@ -1,6 +1,7 @@
 package com.makenv.service;
 
 import com.makenv.domain.City;
+import com.makenv.vo.CityVo;
 
 import java.util.List;
 import java.util.Map;
@@ -11,6 +12,6 @@ import java.util.Map;
  */
 public interface CityService {
 
-    List<Map<String,Object>> getAllCity();
+    List<CityVo> getAllCity();
 
 }

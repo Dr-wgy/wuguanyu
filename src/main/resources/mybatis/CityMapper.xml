@@ -7,10 +7,16 @@
     <result column="regionId" jdbcType="VARCHAR" property="regionid" />
     <result column="longitude" jdbcType="VARCHAR" property="longitude" />
     <result column="latitude" jdbcType="VARCHAR" property="latitude" />
-    <result column="status" jdbcType="BIT" property="status" />
+  </resultMap>
+  <resultMap id="BaseResultMap1" type="com.makenv.vo.CityVo">
+    <id column="cityId" jdbcType="INTEGER" property="cityId" />
+    <result column="regionName" jdbcType="VARCHAR" property="regionName" />
+    <result column="regionId" jdbcType="VARCHAR" property="regionId" />
+    <result column="lon" jdbcType="VARCHAR" property="lon" />
+    <result column="lat" jdbcType="VARCHAR" property="lat" />
   </resultMap>
   <sql id="Base_Column_List">
-    cityId, cityName, regionId, longitude, latitude, status
+    cityId, cityName, regionId, longitude, latitude
   </sql>
   <select id="selectByPrimaryKey" parameterType="java.lang.Integer" resultMap="BaseResultMap">
     select 
@@ -24,10 +30,10 @@
   </delete>
   <insert id="insert" parameterType="com.makenv.domain.City">
     insert into pm_city (cityId, cityName, regionId, 
-      longitude, latitude, status
+      longitude, latitude
       )
     values (#{cityid,jdbcType=INTEGER}, #{cityname,jdbcType=VARCHAR}, #{regionid,jdbcType=VARCHAR}, 
-      #{longitude,jdbcType=VARCHAR}, #{latitude,jdbcType=VARCHAR}, #{status,jdbcType=BIT}
+      #{longitude,jdbcType=VARCHAR}, #{latitude,jdbcType=VARCHAR}
       )
   </insert>
   <insert id="insertSelective" parameterType="com.makenv.domain.City">
@@ -68,9 +74,6 @@
       <if test="latitude != null">
         #{latitude,jdbcType=VARCHAR},
       </if>
-      <if test="status != null">
-        #{status,jdbcType=BIT},
-      </if>
     </trim>
   </insert>
   <update id="updateByPrimaryKeySelective" parameterType="com.makenv.domain.City">
@@ -88,9 +91,6 @@
       <if test="latitude != null">
         latitude = #{latitude,jdbcType=VARCHAR},
       </if>
-      <if test="status != null">
-        status = #{status,jdbcType=BIT},
-      </if>
     </set>
     where cityId = #{cityid,jdbcType=INTEGER}
   </update>
@@ -100,15 +100,15 @@
       regionId = #{regionid,jdbcType=VARCHAR},
       longitude = #{longitude,jdbcType=VARCHAR},
       latitude = #{latitude,jdbcType=VARCHAR},
-      status = #{status,jdbcType=BIT}
     where cityId = #{cityid,jdbcType=INTEGER}
   </update>
-  <select id="selectAllCity" resultType="map">
+  <select id="selectAllCity" resultMap="BaseResultMap1">
     SELECT
+      cityId,
       cityName AS regionName,
-      substring(regionId,1,4) AS regionId,
-      longitude AS lon,
-      latitude AS lat
-    FROM pm_city
+      substring(regionId,1,4) AS regionId
+<!--      ,longitude AS lon,
+      latitude AS lat-->
+    FROM pm_city where regionId is not null order by regionId
   </select>
 </mapper>

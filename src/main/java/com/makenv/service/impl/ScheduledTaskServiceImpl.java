@@ -3,6 +3,7 @@ package com.makenv.service.impl;
 import com.makenv.config.TaskExecutorConfig;
 import com.makenv.service.AsyncService;
 import com.makenv.service.ScheduledTaskService;
+import com.makenv.service.StationDetailService;
 import com.makenv.task.DateTask;
 import com.makenv.task.HourTask;
 import com.makenv.task.Task;
@@ -41,30 +42,23 @@ import java.util.concurrent.TimeUnit;
 
 
     @Autowired
-    private TaskExecutorConfig taskExecutorConfig;
+    private ThreadPoolTaskExecutor executor;
 
-    @Resource(name="stringRedisTemplate")
+    @Resource(name="redisTemplate")
     private RedisTemplate redisTemplate;
+
+    @Resource
+    private StationDetailService stationDetailService;
 
 /*    @Autowired
     private AsyncService asyncService;*/
 
 
     @Override
-   /* @Scheduled(fixedRate = 50000)*/
+    @Scheduled(fixedRate = 50000)
     public void reportCurrentTime() {
 
-      /*  //这块逻辑有点问题不知道怎么弄
-        if(dateTask.getSubTasks().size() > 0) {
-
-            Thread th =  new CheckThread(dateTask);
-
-            th.setDaemon(true);//设置后台进程避免程序意外时耗性能；
-
-            th.start();
-
-        }*/
-
+        //检查是否有都出来的id
 
     }
 
@@ -72,15 +66,9 @@ import java.util.concurrent.TimeUnit;
     @Scheduled(cron = "0 0 0 ? * *")
     public void fixTimeExecution() {
 
-        Executor executor = taskExecutorConfig.getAsyncExecutor();
-
         LocalDateTime endTime = LocalDateTime.of(LocalDateTime.now().toLocalDate(), LocalTime.of(0, 0, 0));
 
         LocalDateTime startTime = endTime.minus(1, ChronoUnit.DAYS);
-
-        TaskGroup taskGoup = new TaskGroup();
-
-        //List resultList = dateTask.getResultList();
 
         while(startTime.isBefore(endTime)){
 
@@ -88,71 +76,14 @@ import java.util.concurrent.TimeUnit;
 
             HourTask hourTask = new HourTask(startTime,temp);
 
-           // hourTask.setRedisTemplate(hourTask);
+            hourTask.setRedisTemplate(redisTemplate);
 
-            //hourTask.setParentTask(dateTask);
-
-            //dateTask.getSubTasks().add(hourTask);
+            hourTask.setStationDetailService(stationDetailService);
 
             executor.execute(hourTask);
-
-            taskGoup.add(hourTask);
-
-            //asyncService.executeAsyncTask(hourTask);
 
             startTime = temp;
         }
 
     }
-
- /*   class CheckThread extends Thread {
-
-        private Task task;
-
-
-        public CheckThread(Task task) {
-
-            this.task = task;
-
-        }
-        public CheckThread() {
-
-        }
-
-
-
-        @Override
-        public void run() {
-
-
-          if(this.task instanceof  DateTask) {
-
-                DateTask dateTask = ((DateTask)task);
-
-                while(true){
-
-                    if(dateTask.getSubTasks().size() == 0) {
-
-                        List list =  dateTask.getResultList();
-
-                        System.out.println(dateTask.getResultList().size());
-
-                        //System.out.println(redisTemplate);
-
-                        break;
-
-                    }
-
-      *//*                    try {
-                        TimeUnit.SECONDS.sleep(5);
-
-                    } catch (InterruptedException e) {
-
-                        e.printStackTrace();
-                    }*//*
-                }
-          }
-        }
-    }*/
-
 }

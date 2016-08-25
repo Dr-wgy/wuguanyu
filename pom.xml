@@ -14,7 +14,7 @@
         <aspect.version>1.8.5</aspect.version>
         <mysql.version>5.1.38</mysql.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <mybatis.version>3.2.7</mybatis.version>
+        <mybatis.version> 3.4.0</mybatis.version>
         <maven.compiler.source>1.8</maven.compiler.source>
         <maven.compiler.target>1.8</maven.compiler.target>
     </properties>
@@ -114,6 +114,8 @@
             <version>1.0.18</version>
         </dependency>
 
+
+
         <!--mybatis支持-->
         <dependency>
             <groupId>org.mybatis</groupId>
@@ -125,6 +127,23 @@
             <groupId>org.mybatis</groupId>
             <artifactId>mybatis</artifactId>
             <version>${mybatis.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.mybatis</groupId>
+            <artifactId>mybatis-typehandlers-jsr310</artifactId>
+            <version>1.0.0</version>
+        </dependency>
+
+<!--        <dependency>
+            <groupId>javax.time</groupId>
+            <artifactId>jsr-310-ri</artifactId>
+        </dependency>-->
+
+        <dependency>
+            <groupId>com.fasterxml.jackson.datatype</groupId>
+            <artifactId>jackson-datatype-jsr310</artifactId>
+            <version>2.6.6</version>
         </dependency>
 
         <!--org-apache-->

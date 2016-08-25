@@ -1,8 +1,12 @@
 package com.makenv.domain;
 
+import java.io.Serializable;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Date;
 
-public class StationDetail {
+public class StationDetail implements Serializable {
+
     private Integer aqi;
 
     private String area;
@@ -51,7 +55,21 @@ public class StationDetail {
 
     private String stationcode;
 
-    private Date timepoint;
+    public String getTimepoint() {
+
+        if(timepoint != null) {
+
+            return DateTimeFormatter.ofPattern("yyyy-MM-dd HH").format(timepoint);
+        }
+
+        return null;
+    }
+
+    public void setTimepoint(LocalDateTime timepoint) {
+        this.timepoint = timepoint;
+    }
+
+    private LocalDateTime timepoint;
 
     public Integer getAqi() {
         return aqi;
@@ -245,11 +263,5 @@ public class StationDetail {
         this.stationcode = stationcode == null ? null : stationcode.trim();
     }
 
-    public Date getTimepoint() {
-        return timepoint;
-    }
 
-    public void setTimepoint(Date timepoint) {
-        this.timepoint = timepoint;
-    }
 }

@@ -4,6 +4,7 @@ import com.makenv.domain.City;
 import com.makenv.mapper.CityMapper;
 import com.makenv.mapper.StationMapper;
 import com.makenv.service.StationService;
+import com.makenv.vo.StationVo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -31,7 +32,7 @@ public class StationServiceImpl implements StationService {
 
     @Override
     @Transactional(readOnly = true)
-    public List<Map<String,Object>> getAllStations() {
+    public List<StationVo> getAllStations() {
 
         return stationMapper.selectAllStation();
     }

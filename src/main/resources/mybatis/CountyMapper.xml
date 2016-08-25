@@ -6,6 +6,11 @@
     <result column="countyID" jdbcType="INTEGER" property="countyid" />
     <result column="county" jdbcType="VARCHAR" property="county" />
   </resultMap>
+  <resultMap id="BaseResultMap1" type="com.makenv.vo.CountyVo">
+    <id column="id" jdbcType="INTEGER" property="id" />
+    <result column="regionId" jdbcType="INTEGER" property="regionId" />
+    <result column="regionName" jdbcType="VARCHAR" property="regionName" />
+  </resultMap>
   <sql id="Base_Column_List">
     id, countyID, county
   </sql>
@@ -69,9 +74,13 @@
     where id = #{id,jdbcType=INTEGER}
   </update>
 
-  <select id="getAllCountyList" resultType="map">
+  <select id="getAllCountyList" resultMap="BaseResultMap1">
 
-    select countyID as regionId, county as regionName from pm_county
+    select
+      id as id,
+      countyID as regionId,
+      county as regionName
+    from pm_county where countyID is not null
 
   </select>
 </mapper>

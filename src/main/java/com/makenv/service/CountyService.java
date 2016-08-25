@@ -1,5 +1,7 @@
 package com.makenv.service;
 
+import com.makenv.vo.CountyVo;
+
 import java.util.List;
 import java.util.Map;
 
@@ -8,6 +10,6 @@ import java.util.Map;
  */
 public interface CountyService {
 
-    List<Map<String,Object>> getAllCountyList();
+    List<CountyVo> getAllCountyList();
 
 }

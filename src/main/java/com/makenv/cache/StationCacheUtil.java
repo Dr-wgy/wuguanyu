@@ -1,6 +1,7 @@
 package com.makenv.cache;
 
 import com.makenv.domain.Station;
+import com.makenv.vo.StationVo;
 
 import javax.validation.constraints.Null;
 import java.util.ArrayList;
@@ -32,26 +33,26 @@ public class StationCacheUtil {
         return instance;
     }
 
-    public List<Map<String,Object>> getStationList() {
+    public List<StationVo> getStationList() {
         return stationList;
     }
 
-    public void setStationList(List<Map<String,Object>> stationList) {
+    public void setStationList(List<StationVo> stationList) {
         this.stationList = stationList;
     }
 
-    private List<Map<String,Object>> stationList;
+    private List<StationVo> stationList;
 
     /**
      * 通过城市名字其下面的stationList
      * @param cityName
      * @return
      */
-    public List<Map<String,Object>> getStationListByCityName(String cityName){
+    public List<StationVo> getStationListByCityName(String cityName){
 
         if(this.stationList !=null){
 
-            return stationList.stream().filter(map -> map.get("cityName").equals(cityName)).collect(Collectors.toList());
+            return stationList.stream().filter(station -> (station !=null && station.getCityName()!= null)?station.getCityName().equals(cityName):false).collect(Collectors.toList());
         }
 
         return null;
@@ -62,11 +63,11 @@ public class StationCacheUtil {
      * @param cityId
      * @return
      */
-    public List<Map<String,Object>> getStationListByCityId(String cityId){
+    public List<StationVo> getStationListByCityId(Integer cityId){
 
         if(this.stationList !=null){
 
-            return stationList.stream().filter(map -> map.get("cityId").equals(cityId)).collect(Collectors.toList());
+            return stationList.stream().filter(station -> (station != null && station.getCityId() != null)?station.getCityId().equals(cityId):false).collect(Collectors.toList());
         }
 
         return null;
@@ -77,22 +78,20 @@ public class StationCacheUtil {
      * @param code
      * @return
      */
-    public List<Map<String,Object>> getStationListByCityCode(String code){
+    public List<StationVo> getStationListByCityCode(String code){
 
         if(code != null && code.length() >= 2) {
 
-          /*  String cityCode1 = cityCode.substring(0,4);*/
-
-            return stationList.stream().filter(map -> String.valueOf(map.get("regionId")).startsWith(code)).distinct().collect(Collectors.toList());
+            return stationList.stream().filter(station -> (station != null && station.getRegionId() != null)?station.getRegionId().startsWith(code):false).distinct().collect(Collectors.toList());
 
         }
 
         return null;
     }
 
-    public Map<String,Object> getStation(String stationCode){
+    public StationVo getStation(String stationCode){
 
-        return this.stationList.stream().filter(map -> map.get("stationId").equals(stationCode)).findFirst().orElse(null);
+        return this.stationList.stream().filter(station -> (station != null && station.getStationId() != null)?station.getStationId().equals(stationCode):false).findFirst().orElse(null);
 
 
     }
@@ -121,7 +120,7 @@ public class StationCacheUtil {
 
         list.add(map);
 
-        StationCacheUtil.newInstance().setStationList(list);
+       // StationCacheUtil.newInstance().setStationList(list);
 
         List list1 = StationCacheUtil.newInstance().getStationListByCityCode("130100");
 

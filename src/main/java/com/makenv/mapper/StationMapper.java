@@ -2,6 +2,7 @@ package com.makenv.mapper;
 
 import com.makenv.domain.City;
 import com.makenv.domain.Station;
+import com.makenv.vo.StationVo;
 
 import java.util.List;
 import java.util.Map;
@@ -19,7 +20,7 @@ public interface StationMapper {
 
     int updateByPrimaryKey(Station record);
 
-    List<Map<String,Object>> selectAllStation();
+    List<StationVo> selectAllStation();
 
     List<Station> getStationByCity(String city);
 

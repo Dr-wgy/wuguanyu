@@ -1,5 +1,6 @@
 package com.makenv.task;
 
+import com.makenv.domain.StationDetail;
 import com.makenv.service.AsyncService;
 import com.makenv.service.StationDetailService;
 import org.slf4j.Logger;
@@ -27,6 +28,8 @@ public class HourTask extends DateTask implements Runnable {
 
     private RedisTemplate redisTemplate;
 
+    private StationDetailService stationDetailService;
+
     public TaskGroup getTaskGroup() {
         return taskGroup;
     }
@@ -40,8 +43,6 @@ public class HourTask extends DateTask implements Runnable {
     public void setStationDetailService(StationDetailService stationDetailService) {
         this.stationDetailService = stationDetailService;
     }
-
-    private StationDetailService stationDetailService;
 
     public HourTask(LocalDateTime startTime, LocalDateTime endTime) {
 
@@ -60,42 +61,48 @@ public class HourTask extends DateTask implements Runnable {
 
         final LocalDateTime endTime  = this.getEndTime();
 
-        final List list = stationDetailService.selectStationDetailByTimeInterval(formatter.format(startTime),formatter.format(endTime));
+        final List<StationDetail> list = stationDetailService.selectStationDetailByTimeInterval(formatter.format(startTime),formatter.format(endTime));
 
-        try {
+        if(list != null && list.size() != 0) {
 
-            redisTemplate.executePipelined(new RedisCallback<Object>() {
+            try {
 
-                @Override
-                public Object doInRedis(RedisConnection connection) throws DataAccessException {
+                redisTemplate.executePipelined(new RedisCallback<Object>() {
 
-                    String key = DateTimeFormatter.ofPattern("yyyy-MM-dd HH").format(startTime);
+                    @Override
+                    public Object doInRedis(RedisConnection connection) throws DataAccessException {
 
-                    LocalDateTime time = LocalDateTime.of(endTime.getYear(), endTime.getMonth().getValue() + 1, 1, 0, 0);
+                        String key = DateTimeFormatter.ofPattern("yyyy-MM-dd HH").format(startTime);
 
-                    long expireTime = endTime.until(time, ChronoUnit.SECONDS);
+                        LocalDateTime time = LocalDateTime.of(endTime.getYear(), endTime.getMonth().getValue() + 1, 1, 0, 0);
 
-                    RedisSerializer keySerializer = redisTemplate.getKeySerializer();
+                        long expireTime = endTime.until(time, ChronoUnit.SECONDS);
 
-                    RedisSerializer valueSerializer = redisTemplate.getValueSerializer();
+                        RedisSerializer keySerializer = redisTemplate.getStringSerializer();
 
-                    byte []  bkeys = keySerializer.serialize(key);
+                        RedisSerializer valueSerializer = redisTemplate.getValueSerializer();
 
-                    byte []  bvals = valueSerializer.serialize(list);
+                        byte []  bkeys = keySerializer.serialize(key);
 
-                    connection.setEx(bkeys,expireTime,bvals);
+                        byte []  bvals = valueSerializer.serialize(list);
 
-                    return null;
-                }
-            });
+                        connection.setEx(bkeys,expireTime,bvals);
+
+                        return null;
+                    }
+                });
 
 
-        } catch (Exception e) {
+            } catch (Exception e) {
 
-            e.printStackTrace();
+                e.printStackTrace();
 
-            logger.info("Excpetion",e);
+                logger.info("Excpetion",e);
+            }
+
         }
+
+
     }
 
     public void setRedisTemplate(RedisTemplate redisTemplate) {

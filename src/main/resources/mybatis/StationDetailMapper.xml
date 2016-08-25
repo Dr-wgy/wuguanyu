@@ -37,186 +37,51 @@
     PM10_24h, PM2_5, PM2_5_24h, PositionName,
     PrimaryPollutant, Quality, SO2,
     SO2_24h, StationCode, TimePoint
-
   </sql>
 
-  <insert id="insert" parameterType="com.makenv.domain.StationDetail">
-    insert into PM_25 (AQI, Area, CO, CO_24h, 
-      ID, Latitude, Longitude, 
-      NO2, NO2_24h, O3, O3_24h, 
-      O3_8h, O3_8h_24h, OrderId, PM10, 
-      PM10_24h, PM2_5, PM2_5_24h, PositionName, 
-      PrimaryPollutant, Quality, SO2, 
-      SO2_24h, StationCode, TimePoint
-      )
-    values (#{aqi,jdbcType=INTEGER}, #{area,jdbcType=VARCHAR}, #{co,jdbcType=REAL}, #{co24h,jdbcType=REAL}, 
-      #{id,jdbcType=INTEGER}, #{latitude,jdbcType=REAL}, #{longitude,jdbcType=REAL}, 
-      #{no2,jdbcType=REAL}, #{no224h,jdbcType=REAL}, #{o3,jdbcType=REAL}, #{o324h,jdbcType=REAL}, 
-      #{o38h,jdbcType=REAL}, #{o38h24h,jdbcType=REAL}, #{orderid,jdbcType=INTEGER}, #{pm10,jdbcType=REAL}, 
-      #{pm1024h,jdbcType=REAL}, #{pm25,jdbcType=REAL}, #{pm2524h,jdbcType=REAL}, #{positionname,jdbcType=VARCHAR}, 
-      #{primarypollutant,jdbcType=VARCHAR}, #{quality,jdbcType=VARCHAR}, #{so2,jdbcType=REAL}, 
-      #{so224h,jdbcType=REAL}, #{stationcode,jdbcType=VARCHAR}, #{timepoint,jdbcType=TIMESTAMP}
-      )
-  </insert>
-  <insert id="insertSelective" parameterType="com.makenv.domain.StationDetail">
-    insert into PM_25
-    <trim prefix="(" suffix=")" suffixOverrides=",">
-      <if test="aqi != null">
-        AQI,
-      </if>
-      <if test="area != null">
-        Area,
-      </if>
-      <if test="co != null">
-        CO,
-      </if>
-      <if test="co24h != null">
-        CO_24h,
-      </if>
-      <if test="id != null">
-        ID,
-      </if>
-      <if test="latitude != null">
-        Latitude,
-      </if>
-      <if test="longitude != null">
-        Longitude,
-      </if>
-      <if test="no2 != null">
-        NO2,
-      </if>
-      <if test="no224h != null">
-        NO2_24h,
-      </if>
-      <if test="o3 != null">
-        O3,
-      </if>
-      <if test="o324h != null">
-        O3_24h,
-      </if>
-      <if test="o38h != null">
-        O3_8h,
-      </if>
-      <if test="o38h24h != null">
-        O3_8h_24h,
-      </if>
-      <if test="orderid != null">
-        OrderId,
-      </if>
-      <if test="pm10 != null">
-        PM10,
-      </if>
-      <if test="pm1024h != null">
-        PM10_24h,
-      </if>
-      <if test="pm25 != null">
-        PM2_5,
-      </if>
-      <if test="pm2524h != null">
-        PM2_5_24h,
-      </if>
-      <if test="positionname != null">
-        PositionName,
-      </if>
-      <if test="primarypollutant != null">
-        PrimaryPollutant,
-      </if>
-      <if test="quality != null">
-        Quality,
-      </if>
-      <if test="so2 != null">
-        SO2,
-      </if>
-      <if test="so224h != null">
-        SO2_24h,
-      </if>
-      <if test="stationcode != null">
-        StationCode,
-      </if>
-      <if test="timepoint != null">
-        TimePoint,
-      </if>
-    </trim>
-    <trim prefix="values (" suffix=")" suffixOverrides=",">
-      <if test="aqi != null">
-        #{aqi,jdbcType=INTEGER},
-      </if>
-      <if test="area != null">
-        #{area,jdbcType=VARCHAR},
-      </if>
-      <if test="co != null">
-        #{co,jdbcType=REAL},
-      </if>
-      <if test="co24h != null">
-        #{co24h,jdbcType=REAL},
-      </if>
-      <if test="id != null">
-        #{id,jdbcType=INTEGER},
-      </if>
-      <if test="latitude != null">
-        #{latitude,jdbcType=REAL},
-      </if>
-      <if test="longitude != null">
-        #{longitude,jdbcType=REAL},
-      </if>
-      <if test="no2 != null">
-        #{no2,jdbcType=REAL},
-      </if>
-      <if test="no224h != null">
-        #{no224h,jdbcType=REAL},
-      </if>
-      <if test="o3 != null">
-        #{o3,jdbcType=REAL},
-      </if>
-      <if test="o324h != null">
-        #{o324h,jdbcType=REAL},
-      </if>
-      <if test="o38h != null">
-        #{o38h,jdbcType=REAL},
-      </if>
-      <if test="o38h24h != null">
-        #{o38h24h,jdbcType=REAL},
-      </if>
-      <if test="orderid != null">
-        #{orderid,jdbcType=INTEGER},
-      </if>
-      <if test="pm10 != null">
-        #{pm10,jdbcType=REAL},
-      </if>
-      <if test="pm1024h != null">
-        #{pm1024h,jdbcType=REAL},
-      </if>
-      <if test="pm25 != null">
-        #{pm25,jdbcType=REAL},
-      </if>
-      <if test="pm2524h != null">
-        #{pm2524h,jdbcType=REAL},
-      </if>
-      <if test="positionname != null">
-        #{positionname,jdbcType=VARCHAR},
-      </if>
-      <if test="primarypollutant != null">
-        #{primarypollutant,jdbcType=VARCHAR},
-      </if>
-      <if test="quality != null">
-        #{quality,jdbcType=VARCHAR},
-      </if>
-      <if test="so2 != null">
-        #{so2,jdbcType=REAL},
-      </if>
-      <if test="so224h != null">
-        #{so224h,jdbcType=REAL},
-      </if>
-      <if test="stationcode != null">
-        #{stationcode,jdbcType=VARCHAR},
-      </if>
-      <if test="timepoint != null">
-        #{timepoint,jdbcType=TIMESTAMP},
-      </if>
-    </trim>
-  </insert>
+  <sql id="avgSpecies">
+    AVG(SO2) AS SO2,
+    AVG(NO2) AS NO2,
+    AVG(PM2_5) AS PM2_5,
+    AVG(PM10) AS PM10,
+    AVG(CO) AS CO,
+    AVG(O3_8h) AS O3_8h,
+    AVG(AQI) AS AQI,
+    AVG(O3) AS O3
+  </sql>
 
-  <!--按时间段进行查询 包括偷头时间不包括尾时间-->
+  <sql id="avgSpecies_1">
+    AVG(SO2) AS val_SO2,
+    AVG(NO2) AS val_NO2,
+    AVG(PM2_5) AS val_PM2_5,
+    AVG(PM10) AS val_PM10,
+    AVG(CO) AS val_CO,
+    AVG(O3_8h) AS val_O3_8h,
+    AVG(AQI) AS val_AQI,
+    AVG(O3) AS val_O3
+  </sql>
+
+  <sql id="speciesFilter">
+      AVG(SO2)>150 as SO2 ,
+      AVG(NO2)>80 as NO2 ,
+      AVG(PM2_5)>75 as PM2_5 ,
+      AVG(PM10)>150 as PM10 ,
+      AVG(CO)>4 as CO ,
+      MAX(O3_8h)>160 as O3_8h,
+      MAX(O3)>200 as O3
+  </sql>
+
+  <sql id="sumSpecies">
+    sum(SO2) as SO2,
+    sum(NO2) as NO2,
+    sum(PM2_5) as PM2_5,
+    sum(PM10) as PM10,
+    sum(CO) as CO,
+    sum(O3_8h) as O3_8h,
+    sum(O3) as O3
+  </sql>
+
+  <!--按时间段进行查询 包括开头时间不包括尾时间-->
   <select id="selectStationDetailByTimeInterval" parameterType="Map" resultMap="BaseResultMap">
     select
     <include refid="allColumn"/>
@@ -227,14 +92,7 @@
     SELECT
       stationCode,
       AREA,
-      AVG(SO2) AS SO2,
-      AVG(NO2) AS NO2,
-      AVG(PM2_5) AS PM2_5,
-      AVG(PM10) AS PM10,
-      AVG(CO) AS CO,
-      AVG(O3_8h) AS O3_8h,
-      AVG(AQI) AS AQI,
-      AVG(O3) AS O3
+      <include refid="avgSpecies"/>
     FROM PM_25 p LEFT JOIN pm_station s ON p.stationCode = s.stationId
     WHERE YEAR(p.timepoint) = 2014 AND s.longitude BETWEEN #{lonMin} AND #{lonMax}
     AND s.latitude BETWEEN #{latMin} AND #{latMax} GROUP BY Area
@@ -243,14 +101,7 @@
 
   <select id="selectByYearResultByProvince" resultType="map">
     SELECT
-      AVG(SO2) AS SO2,
-      AVG(NO2) AS NO2,
-      AVG(PM2_5) AS PM2_5,
-      AVG(PM10) AS PM10,
-      AVG(CO) AS CO,
-      AVG(O3_8h) AS O3_8h,
-      AVG(AQI) AS AQI,
-      AVG(O3) AS O3
+      <include refid="avgSpecies"/>
     FROM ${tableName} where YEAR(TimePoint) = #{year}
     and StationCode in
     <foreach item="station" collection="#{stationList}" open="(" close=")" separator=",">
@@ -259,17 +110,10 @@
 
   </select>
 
-  <select id="selectByYearResultByCity" resultType="map">
+  <select id="selectAvgYearResultByStationCode" resultType="map">
 
     SELECT
-      AVG(SO2) AS SO2,
-      AVG(NO2) AS NO2,
-      AVG(PM2_5) AS PM2_5,
-      AVG(PM10) AS PM10,
-      AVG(CO) AS CO,
-      AVG(O3_8h) AS O3_8h,
-      AVG(AQI) AS AQI,
-      AVG(O3) AS O3
+      <include refid="avgSpecies"/>
     FROM ${tableName} where YEAR(TimePoint) = #{year}
     and StationCode in
       <foreach item="station" collection="stationList" open="(" close=")" separator=",">
@@ -277,25 +121,25 @@
       </foreach>
   </select>
 
-  <select id="selectOverStandardGroupByDate" resultType="map">
-
+  <select id="selectAvgMonthResultByStationCode" resultType="map">
     select
-      sum(SO2) as SO2,
-      sum(NO2) as NO2,
-      sum(PM2_5) as PM2_5,
-      sum(PM10) as PM10,
-      sum(CO) as CO,
-      sum(O3_8h) as O3_8h,
-      sum(O3) as O3 from
+      <include refid="avgSpecies"/>
+      from ${tableName} where
+      and StationCode in
+      <foreach item="station" collection="stationList" open="(" close=")" separator=",">
+        #{station.stationId}
+      </foreach>
+       and TimePoint &gt;= #{startTime} and TimePoint &lt; #{endTime}
+
+  </select>
+
+  <select id="selectOverStandardGroupByDate" resultType="map">
+    select
+        <include refid="sumSpecies"/>
+      from
       (
           select
-            AVG(SO2)>150 as SO2 ,
-            AVG(NO2)>80 as NO2 ,
-            AVG(PM2_5)>75 as PM2_5 ,
-            AVG(PM10)>150 as PM10 ,
-            AVG(CO)>4 as CO ,
-            MAX(O3_8h)>160 as O3_8h,
-            MAX(O3)>200 as O3
+            <include refid="speciesFilter"/>
           from ${tableName} where YEAR(TimePoint) = #{year}
           and StationCode in
           <foreach item="station" collection="stationList" open="(" close=")" separator=",">
@@ -304,8 +148,104 @@
           group by DATE(TimePoint) )As t
   </select>
 
- <!-- <select id="selectByYearResultCounty" resultType="">
+  <select id="selectOverStandardGroupByDate1" resultType="map">
+    select
+      <include refid="sumSpecies"/>
+    from
+    (
+      select
+      <include refid="speciesFilter"/>
+      from ${tableName} where
+      and StationCode in
+      <foreach item="station" collection="stationList" open="(" close=")" separator=",">
+        #{station.stationId}
+      </foreach>
+      and TimePoint &gt;= #{startTime} and TimePoint &lt; #{endTime}
+      group by DATE(TimePoint) )As t
 
-  </select>-->
+  </select>
 
+  <select id="getLastTimeSpanResultData" resultType="map">
+    select
+    timepoint,
+      <include refid="avgSpecies"/>
+    from
+    PM_25 where  StationCode in
+    <foreach item="station" collection="stationList" open="(" close=")" separator=",">
+      #{station.stationId}
+     </foreach>
+      and TimePoint &gt;= #{startTime} and TimePoint &lt; #{endTime}
+      group by ${dateUnit}(timepoint) order by timepoint desc
+  </select>
+
+
+  <select id="getAllCurrentPlace" resultType="map" parameterType="com.makenv.vo.CityParamVo">
+
+    select
+      ${area} as area,
+      <include refid="avgSpecies"/>
+    from ${tableName}
+    <where>
+      TimePoint
+      <choose>
+        <when test="isTimePointOrTimeInterval">
+          = '${dateTime}'
+        </when>
+        <otherwise>
+          &gt;= #{beforeTime} and  &lt;#{endTime}
+        </otherwise>
+      </choose>
+    </where>
+    group by ${area}
+  </select>
+
+<select id="getRankResultDataByArea" resultType="com.makenv.vo.RankAreaData">
+    ${preSql}
+    ${headSql}
+    select
+      <choose>
+          <when test="parameterModel.tunit == 'm'.toString()">
+              DATE_FORMAT(TimePoint,'%Y-%m') as timePoint,
+          </when>
+          <when test="parameterModel.tunit == 'd'.toString()">
+              DATE_FORMAT(TimePoint,'%Y-%m-%d') as timePoint,
+          </when>
+          <otherwise>
+              timePoint,
+          </otherwise>
+      </choose>
+      Area as area,
+      <include refid="avgSpecies_1"/>
+    from ${parameterModel.tableName}
+    where  TimePoint &gt;= #{startTime} and TimePoint &lt; #{endTime} and
+    Area in
+    <foreach item="area" collection="parameterModel.areas" open="(" close=")" separator=",">
+        #{area}
+    </foreach>
+    group by Area
+  ${tailSql}
+  </select>
+
+  <select id="getAvgResultByRe" resultType="java.util.LinkedHashMap">
+     select
+      Area as area,
+      <choose>
+        <when test="tunit == 'm'.toString()">
+          DATE_FORMAT(TimePoint,'%Y-%m') as timePoint,
+        </when>
+        <when test="tunit == 'd'.toString()">
+          DATE_FORMAT(TimePoint,'%Y-%m-%d') as timePoint,
+        </when>
+        <otherwise>
+          timePoint,
+         </otherwise>
+      </choose>
+      <include refid="avgSpecies"/>
+      from ${tableName}
+      where  TimePoint &gt;= #{startTime} and TimePoint &lt; #{endTime}
+    and StationCode in
+    <foreach item="station" collection="stationList" open="(" close=")" separator=",">
+      #{station}
+    </foreach>
+  </select>
 </mapper>

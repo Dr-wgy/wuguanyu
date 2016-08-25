@@ -1,23 +1,17 @@
 package com.makenv.controller;
 
-import com.makenv.cache.RedisCache;
+import com.makenv.condition.StationDetailCondition;
 import com.makenv.config.SpeciesConfig;
 import com.makenv.domain.City;
+import com.makenv.service.StationDetailService;
 import com.makenv.service.StationService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.redis.core.RedisTemplate;
-import org.springframework.data.redis.core.StringRedisTemplate;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.context.WebApplicationContext;
-import org.springframework.web.context.support.WebApplicationContextUtils;
+import org.springframework.web.bind.annotation.*;
 
-import javax.annotation.Resource;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpSession;
+import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -34,6 +28,9 @@ public class TestController extends BaseController {
     @Autowired
     private StationService stationService;
 
+    @Autowired
+    private StationDetailService stationDetailService;
+
 
     @Autowired
     private SpeciesConfig speciesConfig;
@@ -42,7 +39,8 @@ public class TestController extends BaseController {
     private RedisTemplate RedisTemplate;*/
 
     @RequestMapping("/test")
-    public Map test(HttpSession session){
+    @ResponseBody
+    public Map test(@RequestBody List<Map<String,Object>> obj){
 
          return new HashMap();
     }
@@ -50,8 +48,15 @@ public class TestController extends BaseController {
     @RequestMapping("/testCache")
     public List test(City city){
 
-        //speciesConfig.getAQIFilter();
+        LocalDateTime startTime = LocalDateTime.of(2016,8,1,0,0);
 
-        return stationService.getStationByCity1(city);
+        LocalDateTime endTime = startTime.plus(1, ChronoUnit.MONTHS);
+
+        stationDetailService.getRankResultDataByArea(new StationDetailCondition(),startTime,endTime);
+
+        return null;
     }
+
+
+
 }

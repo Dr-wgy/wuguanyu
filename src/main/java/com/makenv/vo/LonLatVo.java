@@ -3,7 +3,7 @@ package com.makenv.vo;
 /**
  * Created by wgy on 2016/8/16.
  */
-public class StationDetailVo {
+public class LonLatVo {
 
     public String getRange() {
         return range;

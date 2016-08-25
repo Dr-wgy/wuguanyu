@@ -48,9 +48,9 @@ public class InitDataListener implements ApplicationListener<ContextRefreshedEve
 
           StationCacheUtil.newInstance().setStationList(stationService.getAllStations());
 
-          ProvinceCacheUtil.newInstance().setProvinceList(provinceService.getAllProvinceList());
+          //ProvinceCacheUtil.newInstance().setProvinceList(provinceService.getAllProvinceList());
 
-          CountyCacheUtil.newInstance().setCountyList(countyService.getAllCountyList());
+          //CountyCacheUtil.newInstance().setCountyList(countyService.getAllCountyList());
 
       }
 

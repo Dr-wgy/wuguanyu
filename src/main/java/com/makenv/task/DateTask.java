@@ -34,7 +34,6 @@ public class DateTask extends TimeTask {
 
     }
 
-
     public DateTask(){
 
     }

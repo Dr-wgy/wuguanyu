@@ -1,7 +1,14 @@
 package com.makenv.util;
 
+import com.makenv.condition.StationDetailCondition;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.time.temporal.ChronoUnit;
 import java.util.*;
 
 /**
@@ -9,6 +16,8 @@ import java.util.*;
  */
 
 public class DateUtils {
+
+    private final static Logger logger = LoggerFactory.getLogger(DateUtils.class);
 
     static final String formatPattern = "yyyy-MM-dd";
 
@@ -200,5 +209,97 @@ public class DateUtils {
         System.out.println("" + day1 + "天" + hour1 + "小时" + minute1 + "分"
                 + second1 + "秒");
     }
+
+    public static String dateFormat(LocalDateTime dateTime){
+
+        String dateTimeString = "";
+
+        dateTimeString = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:00:00").format(dateTime);
+
+        return  dateTimeString;
+    }
+
+    public static String dateFormat(LocalDateTime dateTime,String formatPattern){
+
+        String dateTimeString = "";
+
+        dateTimeString = DateTimeFormatter.ofPattern(formatPattern).format(dateTime);
+
+        return dateTimeString;
+
+    }
+
+    public static Map initCondition(Integer year,Integer month,Integer date,String tunit,Integer timeSpan){
+
+        Map map = new HashMap();
+
+        if(timeSpan == null) {
+
+            timeSpan = 12;
+        }
+
+        LocalDateTime endTime = null;
+
+        LocalDateTime startTime = null;
+
+        ChronoUnit unit = null;
+
+        if(year != null && month !=null) {
+
+            if(date!= null) {
+
+                endTime =  LocalDateTime.of(year, month, date + 1, 0, 0);
+            }
+
+            else {
+
+                endTime =  LocalDateTime.of(year, month+1, 1, 0, 0);
+            }
+
+        }else {
+
+            throw new RuntimeException("时间异常 parameter year month");
+        }
+
+        switch (tunit) {
+
+            case "m":
+
+                startTime = endTime.minus(timeSpan, ChronoUnit.MONTHS);
+
+                unit = ChronoUnit.MONTHS;
+
+                break;
+
+            case "d":
+
+                startTime = endTime.minus(timeSpan, ChronoUnit.DAYS);
+
+                unit = ChronoUnit.DAYS;
+
+                break;
+
+            default:
+
+                break;
+
+        }
+
+        map.put("startTime",startTime);
+
+        map.put("endTime",endTime);
+
+        map.put("chronoUnit",unit);
+
+        return map;
+    }
+
+    public static Map initCondition(StationDetailCondition stationDetailCondition){
+
+      return initCondition(stationDetailCondition.getYear(),
+              stationDetailCondition.getMonth(),stationDetailCondition.getDate(),
+              stationDetailCondition.getTunit(),stationDetailCondition.getTimeSpan());
+    }
+
 }
 

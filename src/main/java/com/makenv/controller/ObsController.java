@@ -1,22 +1,24 @@
 package com.makenv.controller;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
 import com.makenv.cache.CityCacheUtil;
 import com.makenv.cache.CountyCacheUtil;
 import com.makenv.cache.ProvinceCacheUtil;
 import com.makenv.cache.StationCacheUtil;
+import com.makenv.serializer.MyNullKeyJsonSerializer;
 import com.makenv.service.*;
-import com.makenv.vo.StationDetailVo;
-import org.apache.commons.collections.map.HashedMap;
+import com.makenv.vo.CityParamVo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 /**
@@ -40,6 +42,9 @@ public class ObsController extends BaseController {
 
     @Autowired
     private StationService stationService;
+
+    @Autowired
+    private ScheduledTaskService scheduledTaskService;
 
 
     /**
@@ -94,72 +99,55 @@ public class ObsController extends BaseController {
         return map;
     }
 
-    @RequestMapping(value = "/year", method = RequestMethod.GET)
-    public Map<String,Object> getYearResult(@RequestParam("year") Integer year, @RequestParam("regionCode") String regionCode) {
+    @RequestMapping(value="/all-current-place",method = RequestMethod.GET)
+    public String  getCurrentCityResult(CityParamVo cityParamVo) throws JsonProcessingException {
 
         Map<String,Object> map = new HashMap<String,Object>();
 
-        Map<String,Object> map1 =  stationDetailService.getYearResultByCity(year,regionCode);
+        Map resultData= stationDetailService.getAllCurrentPlace(cityParamVo);
 
         map.put(RESULT,SUCCESS);
 
-        map.put(DATA, map1);
+        map.put(DATA, resultData);
 
-        return map;
+        ObjectMapper mapper = new ObjectMapper();
+
+        mapper.configure(SerializationFeature.WRITE_NULL_MAP_VALUES, false);
+
+        mapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
+
+        mapper.getSerializerProvider().setNullKeySerializer(new MyNullKeyJsonSerializer());
+
+        return  mapper.writeValueAsString(map);
+
     }
 
-    @RequestMapping(value = "/month", method = RequestMethod.GET)
-    public Map<String,Object> getMonthResult(@RequestParam("date") Integer year,@RequestParam("month") Integer month, @RequestParam("city") String city) {
+
+/*    @RequestMapping(value="/last",method = RequestMethod.GET)
+    public Map<String,Object> getLastTimeSpanResultData(@RequestParam(value = "unit",defaultValue = "h")String unit,String regionCode,Integer timeSpan){
 
         Map<String,Object> map = new HashMap<String,Object>();
 
-        map.put(RESULT,SUCCESS);
-
-        map.put(DATA, "");
-
-        return map;
-    }
-
-    @RequestMapping(value = "/date", method = RequestMethod.GET)
-    public Map<String,Object> getDayValue(@RequestParam("date") Integer year,@RequestParam("month") Integer month,@RequestParam("date") Integer date, @RequestParam("city") String city) {
-
-        Map<String,Object> map = new HashMap<String,Object>();
-
-        map.put(RESULT,SUCCESS);
-
-        map.put(DATA, "");
-
-        return map;
-    }
-
-    @RequestMapping(value="/aroundRangeBystaCode",method = RequestMethod.GET)
-    public Map<String,Object> getAroundStationCodeRange(@RequestParam("staCode")String stationCode,@RequestParam("range")Integer range,@RequestParam(value = "unit",defaultValue = "km") String unit){
-
-        Map<String,Object> map = new HashMap<String,Object>();
-
-        List<Map<String,Object>> list = stationDetailService.getAroundDataResult(stationCode,range,unit);
+        List list = stationDetailService.getLastTimeSpanResultData(regionCode,timeSpan,unit);
 
         map.put(RESULT,SUCCESS);
 
         map.put(DATA, list);
 
-        return map;
-    }
+        return null;
+    }*/
 
-    @RequestMapping(value="/aroundRangeByLaLong",method = RequestMethod.GET)
-    public Map<String,Object> aroundRangeByLaLong(StationDetailVo stationDetailVo) throws Exception {
+    //stationCode或者regionCode
+    @RequestMapping(value="/last24BySta",method = RequestMethod.GET)
+    public Map<String,Object> getLast24Result(){
 
         Map<String,Object> map = new HashMap<String,Object>();
 
-        List<Map<String,Object>> list = stationDetailService.getAroundDataResult(stationDetailVo);
+        //stationDetailService.getLast24ResultData(regionCode);
 
-        map.put(RESULT,SUCCESS);
-
-        map.put(DATA, list);
-
-        return map;
-
+        return null;
     }
+
 
 
     //历史观测数据 逐月

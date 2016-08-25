@@ -9,6 +9,15 @@
     <result column="longitude" jdbcType="DOUBLE" property="longitude" />
     <result column="cityName" jdbcType="VARCHAR" property="cityname" />
   </resultMap>
+  <resultMap id="BaseResultMap1" type="com.makenv.vo.StationVo">
+    <id column="stationId" jdbcType="VARCHAR" property="stationId" />
+    <result column="stationName" jdbcType="VARCHAR" property="stationName" />
+    <result column="cityId" jdbcType="INTEGER" property="cityId" />
+    <result column="lat" jdbcType="DOUBLE" property="lat" />
+    <result column="lon" jdbcType="DOUBLE" property="lon" />
+    <result column="regionId" jdbcType="VARCHAR" property="regionId" />
+    <result column="cityName" jdbcType="VARCHAR" property="cityName" />
+  </resultMap>
   <sql id="Base_Column_List">
     stationId, stationName, cityId, latitude, longitude, cityName
   </sql>
@@ -104,15 +113,16 @@
     where stationId = #{stationid,jdbcType=VARCHAR}
   </update>
 
-  <select id="selectAllStation" resultType="map">
+  <select id="selectAllStation" resultMap="BaseResultMap1">
     SELECT
       s.stationId,
       s.stationName,
       s.latitude AS lat,
+      s.cityId,
       s.longitude AS lon,
       c.regionId AS regionId,
       s.cityName
-    FROM pm_station s LEFT JOIN pm_city c USING (cityId)
+    FROM pm_station s LEFT JOIN pm_city c USING (cityId) where c.regionId is not null
   </select>
 
   <select id="getStationByCity" parameterType="string" resultMap="BaseResultMap">

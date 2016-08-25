@@ -1,5 +1,7 @@
 package com.makenv.cache;
 
+import com.makenv.vo.ProvinceVo;
+
 import java.util.List;
 import java.util.Map;
 
@@ -27,15 +29,15 @@ public class ProvinceCacheUtil {
     }
 
 
-    public List<Map<String,Object>> getProvinceList() {
+    public List<ProvinceVo> getProvinceList() {
         return provinceList;
     }
 
-    public void setProvinceList(List<Map<String,Object>> provinceList) {
+    public void setProvinceList(List<ProvinceVo> provinceList) {
         this.provinceList = provinceList;
     }
 
-    private List<Map<String,Object>> provinceList;
+    private List<ProvinceVo> provinceList;
 
 
 }

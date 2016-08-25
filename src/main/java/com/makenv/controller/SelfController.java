@@ -7,6 +7,7 @@ import com.makenv.cache.ProvinceCacheUtil;
 import com.makenv.cache.StationCacheUtil;
 import com.makenv.service.CityService;
 import com.makenv.service.ProvinceService;
+import com.makenv.service.ScheduledTaskService;
 import com.makenv.service.StationService;
 import com.sun.javaws.CacheUtil;
 import org.slf4j.Logger;
@@ -36,6 +37,10 @@ public class SelfController extends BaseController {
 
     @Autowired
     private ProvinceService provinceService;
+
+
+    @Autowired
+    private ScheduledTaskService scheduledTaskService;
 
 
     @RequestMapping(value = "/refresh/{type}",method = RequestMethod.GET)
@@ -74,5 +79,11 @@ public class SelfController extends BaseController {
 
         }
 
+    }
+
+    @RequestMapping(value="/bulidCache",method = RequestMethod.GET)
+    public void bulidCache(){
+
+        scheduledTaskService.fixTimeExecution();
     }
 }

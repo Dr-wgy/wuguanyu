@@ -1,5 +1,7 @@
 package com.makenv.service;
 
+import com.makenv.vo.ProvinceVo;
+
 import java.util.List;
 import java.util.Map;
 
@@ -9,6 +11,6 @@ import java.util.Map;
 public interface ProvinceService {
 
 
-    List<Map<String,Object>> getAllProvinceList();
+    List<ProvinceVo> getAllProvinceList();
 
 }

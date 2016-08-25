@@ -2,6 +2,7 @@ package com.makenv.service.impl;
 
 import com.makenv.mapper.CountyMapper;
 import com.makenv.service.CountyService;
+import com.makenv.vo.CountyVo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -18,7 +19,7 @@ public class CountyServiceImpl implements CountyService {
     private CountyMapper countyMapper;
 
 
-    public List<Map<String,Object>> getAllCountyList(){
+    public List<CountyVo> getAllCountyList(){
 
 
         return countyMapper.getAllCountyList();

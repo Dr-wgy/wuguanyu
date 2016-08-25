@@ -2,6 +2,7 @@ package com.makenv.service;
 
 import com.makenv.domain.City;
 import com.makenv.domain.Station;
+import com.makenv.vo.StationVo;
 
 import java.util.List;
 import java.util.Map;
@@ -12,7 +13,7 @@ import java.util.Map;
  */
 public interface  StationService {
 
-    List<Map<String,Object>> getAllStations();
+    List<StationVo> getAllStations();
 
     List getStationByCity(String city);
 

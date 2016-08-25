@@ -1,6 +1,7 @@
 package com.makenv.mapper;
 
 import com.makenv.domain.County;
+import com.makenv.vo.CountyVo;
 
 import java.util.List;
 import java.util.Map;
@@ -18,5 +19,5 @@ public interface CountyMapper {
 
     int updateByPrimaryKey(County record);
 
-    List<Map<String,Object>> getAllCountyList();
+    List<CountyVo> getAllCountyList();
 }

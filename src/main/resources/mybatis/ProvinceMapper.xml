@@ -6,6 +6,11 @@
     <result column="provinceID" jdbcType="INTEGER" property="provinceid" />
     <result column="provinceName" jdbcType="VARCHAR" property="provincename" />
   </resultMap>
+  <resultMap id="BaseResultMap1" type="com.makenv.vo.ProvinceVo">
+    <id column="id" jdbcType="INTEGER" property="id" />
+    <result column="regionId" jdbcType="INTEGER" property="regionId" />
+    <result column="regionName" jdbcType="VARCHAR" property="regionName" />
+  </resultMap>
   <sql id="Base_Column_List">
     id, provinceID, provinceName
   </sql>
@@ -70,9 +75,13 @@
   </update>
 
   <!--获取省级缓存的到两位代码-->
-  <select id="getAllProvinces" resultType="map">
+  <select id="getAllProvinces" resultMap="BaseResultMap1">
 
-      SELECT SUBSTRING(provinceId,1,2) AS regionId ,provinceName as regionName FROM pm_province
+      SELECT
+        id,
+        SUBSTRING(provinceId,1,2) AS regionId ,
+        provinceName as regionName
+      FROM pm_province where provinceId is not null
 
   </select>
 </mapper>

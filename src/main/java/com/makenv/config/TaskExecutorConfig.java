@@ -1,6 +1,7 @@
 package com.makenv.config;
 
 import org.springframework.aop.interceptor.AsyncUncaughtExceptionHandler;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.scheduling.annotation.AsyncConfigurer;
@@ -13,10 +14,10 @@ import java.util.concurrent.Executor;
  * Created by wgy on 2016/8/3.
  */
 @Configuration
-/*@EnableAsync//开启任务异步支持*/
-public class TaskExecutorConfig implements AsyncConfigurer{
-    @Override
-    public Executor getAsyncExecutor() {
+public class TaskExecutorConfig{
+
+    @Bean
+    public ThreadPoolTaskExecutor threadPoolTaskExecutor() {
 
         ThreadPoolTaskExecutor taskExecutor = new ThreadPoolTaskExecutor();
         //线程池维护线程的最少数量
@@ -30,13 +31,4 @@ public class TaskExecutorConfig implements AsyncConfigurer{
 
         return taskExecutor;
     }
-
-    @Override
-    public AsyncUncaughtExceptionHandler getAsyncUncaughtExceptionHandler() {
-
-
-
-        return null;
-    }
-
 }

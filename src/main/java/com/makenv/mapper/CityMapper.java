@@ -1,6 +1,7 @@
 package com.makenv.mapper;
 
 import com.makenv.domain.City;
+import com.makenv.vo.CityVo;
 
 import java.util.List;
 import java.util.Map;
@@ -18,5 +19,5 @@ public interface CityMapper {
 
     int updateByPrimaryKey(City record);
 
-    List<Map<String,Object>> selectAllCity();
+    List<CityVo> selectAllCity();
 }

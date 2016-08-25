@@ -2,6 +2,7 @@ package com.makenv.service.impl;
 
 import com.makenv.mapper.CityMapper;
 import com.makenv.service.CityService;
+import com.makenv.vo.CityVo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,7 +26,7 @@ public class CityServiceImpl implements CityService {
 
     @Override
     @Transactional(readOnly = true)
-    public List<Map<String,Object>> getAllCity() {
+    public List<CityVo> getAllCity() {
 
         return cityMapper.selectAllCity();
     }
