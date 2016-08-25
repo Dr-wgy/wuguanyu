@@ -1,0 +1,251 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.makenv.mapper.StationDetailMapper">
+  <resultMap id="BaseResultMap" type="com.makenv.domain.StationDetail">
+    <result column="AQI" jdbcType="INTEGER" property="aqi" />
+    <result column="Area" jdbcType="VARCHAR" property="area" />
+    <result column="CO" jdbcType="REAL" property="co" />
+    <result column="CO_24h" jdbcType="REAL" property="co24h" />
+    <result column="ID" jdbcType="INTEGER" property="id" />
+    <result column="Latitude" jdbcType="REAL" property="latitude" />
+    <result column="Longitude" jdbcType="REAL" property="longitude" />
+    <result column="NO2" jdbcType="REAL" property="no2" />
+    <result column="NO2_24h" jdbcType="REAL" property="no224h" />
+    <result column="O3" jdbcType="REAL" property="o3" />
+    <result column="O3_24h" jdbcType="REAL" property="o324h" />
+    <result column="O3_8h" jdbcType="REAL" property="o38h" />
+    <result column="O3_8h_24h" jdbcType="REAL" property="o38h24h" />
+    <result column="OrderId" jdbcType="INTEGER" property="orderid" />
+    <result column="PM10" jdbcType="REAL" property="pm10" />
+    <result column="PM10_24h" jdbcType="REAL" property="pm1024h" />
+    <result column="PM2_5" jdbcType="REAL" property="pm25" />
+    <result column="PM2_5_24h" jdbcType="REAL" property="pm2524h" />
+    <result column="PositionName" jdbcType="VARCHAR" property="positionname" />
+    <result column="PrimaryPollutant" jdbcType="VARCHAR" property="primarypollutant" />
+    <result column="Quality" jdbcType="VARCHAR" property="quality" />
+    <result column="SO2" jdbcType="REAL" property="so2" />
+    <result column="SO2_24h" jdbcType="REAL" property="so224h" />
+    <result column="StationCode" jdbcType="VARCHAR" property="stationcode" />
+    <result column="TimePoint" jdbcType="TIMESTAMP" property="timepoint" />
+  </resultMap>
+
+  <sql id="allColumn">
+    AQI, Area, CO, CO_24h,
+    ID, Latitude, Longitude,
+    NO2, NO2_24h, O3, O3_24h,
+    O3_8h, O3_8h_24h, OrderId, PM10,
+    PM10_24h, PM2_5, PM2_5_24h, PositionName,
+    PrimaryPollutant, Quality, SO2,
+    SO2_24h, StationCode, TimePoint
+  </sql>
+
+  <sql id="avgSpecies">
+    AVG(SO2) AS SO2,
+    AVG(NO2) AS NO2,
+    AVG(PM2_5) AS PM2_5,
+    AVG(PM10) AS PM10,
+    AVG(CO) AS CO,
+    AVG(O3_8h) AS O3_8h,
+    AVG(AQI) AS AQI,
+    AVG(O3) AS O3
+  </sql>
+
+  <sql id="avgSpecies_1">
+    AVG(SO2) AS val_SO2,
+    AVG(NO2) AS val_NO2,
+    AVG(PM2_5) AS val_PM2_5,
+    AVG(PM10) AS val_PM10,
+    AVG(CO) AS val_CO,
+    AVG(O3_8h) AS val_O3_8h,
+    AVG(AQI) AS val_AQI,
+    AVG(O3) AS val_O3
+  </sql>
+
+  <sql id="speciesFilter">
+      AVG(SO2)>150 as SO2 ,
+      AVG(NO2)>80 as NO2 ,
+      AVG(PM2_5)>75 as PM2_5 ,
+      AVG(PM10)>150 as PM10 ,
+      AVG(CO)>4 as CO ,
+      MAX(O3_8h)>160 as O3_8h,
+      MAX(O3)>200 as O3
+  </sql>
+
+  <sql id="sumSpecies">
+    sum(SO2) as SO2,
+    sum(NO2) as NO2,
+    sum(PM2_5) as PM2_5,
+    sum(PM10) as PM10,
+    sum(CO) as CO,
+    sum(O3_8h) as O3_8h,
+    sum(O3) as O3
+  </sql>
+
+  <!--按时间段进行查询 包括开头时间不包括尾时间-->
+  <select id="selectStationDetailByTimeInterval" parameterType="Map" resultMap="BaseResultMap">
+    select
+    <include refid="allColumn"/>
+    from PM_25 where TimePoint &gt;= #{startTime} and TimePoint &lt; #{endTime}
+  </select>
+
+  <select id="selectAvgRange" resultType="map">
+    SELECT
+      stationCode,
+      AREA,
+      <include refid="avgSpecies"/>
+    FROM PM_25 p LEFT JOIN pm_station s ON p.stationCode = s.stationId
+    WHERE YEAR(p.timepoint) = 2014 AND s.longitude BETWEEN #{lonMin} AND #{lonMax}
+    AND s.latitude BETWEEN #{latMin} AND #{latMax} GROUP BY Area
+
+  </select>
+
+  <select id="selectByYearResultByProvince" resultType="map">
+    SELECT
+      <include refid="avgSpecies"/>
+    FROM ${tableName} where YEAR(TimePoint) = #{year}
+    and StationCode in
+    <foreach item="station" collection="#{stationList}" open="(" close=")" separator=",">
+      #{station.stationId}
+    </foreach>
+
+  </select>
+
+  <select id="selectAvgYearResultByStationCode" resultType="map">
+
+    SELECT
+      <include refid="avgSpecies"/>
+    FROM ${tableName} where YEAR(TimePoint) = #{year}
+    and StationCode in
+      <foreach item="station" collection="stationList" open="(" close=")" separator=",">
+        #{station.stationId}
+      </foreach>
+  </select>
+
+  <select id="selectAvgMonthResultByStationCode" resultType="map">
+    select
+      <include refid="avgSpecies"/>
+      from ${tableName} where
+      and StationCode in
+      <foreach item="station" collection="stationList" open="(" close=")" separator=",">
+        #{station.stationId}
+      </foreach>
+       and TimePoint &gt;= #{startTime} and TimePoint &lt; #{endTime}
+
+  </select>
+
+  <select id="selectOverStandardGroupByDate" resultType="map">
+    select
+        <include refid="sumSpecies"/>
+      from
+      (
+          select
+            <include refid="speciesFilter"/>
+          from ${tableName} where YEAR(TimePoint) = #{year}
+          and StationCode in
+          <foreach item="station" collection="stationList" open="(" close=")" separator=",">
+            #{station.stationId}
+          </foreach>
+          group by DATE(TimePoint) )As t
+  </select>
+
+  <select id="selectOverStandardGroupByDate1" resultType="map">
+    select
+      <include refid="sumSpecies"/>
+    from
+    (
+      select
+      <include refid="speciesFilter"/>
+      from ${tableName} where
+      and StationCode in
+      <foreach item="station" collection="stationList" open="(" close=")" separator=",">
+        #{station.stationId}
+      </foreach>
+      and TimePoint &gt;= #{startTime} and TimePoint &lt; #{endTime}
+      group by DATE(TimePoint) )As t
+
+  </select>
+
+  <select id="getLastTimeSpanResultData" resultType="map">
+    select
+    timepoint,
+      <include refid="avgSpecies"/>
+    from
+    PM_25 where  StationCode in
+    <foreach item="station" collection="stationList" open="(" close=")" separator=",">
+      #{station.stationId}
+     </foreach>
+      and TimePoint &gt;= #{startTime} and TimePoint &lt; #{endTime}
+      group by ${dateUnit}(timepoint) order by timepoint desc
+  </select>
+
+
+  <select id="getAllCurrentPlace" resultType="map" parameterType="com.makenv.vo.CityParamVo">
+
+    select
+      ${area} as area,
+      <include refid="avgSpecies"/>
+    from ${tableName}
+    <where>
+      TimePoint
+      <choose>
+        <when test="isTimePointOrTimeInterval">
+          = '${dateTime}'
+        </when>
+        <otherwise>
+          &gt;= #{beforeTime} and  &lt;#{endTime}
+        </otherwise>
+      </choose>
+    </where>
+    group by ${area}
+  </select>
+
+<select id="getRankResultDataByArea" resultType="com.makenv.vo.RankAreaData">
+    ${preSql}
+    ${headSql}
+    select
+      <choose>
+          <when test="parameterModel.tunit == 'm'.toString()">
+              DATE_FORMAT(TimePoint,'%Y-%m') as timePoint,
+          </when>
+          <when test="parameterModel.tunit == 'd'.toString()">
+              DATE_FORMAT(TimePoint,'%Y-%m-%d') as timePoint,
+          </when>
+          <otherwise>
+              timePoint,
+          </otherwise>
+      </choose>
+      Area as area,
+      <include refid="avgSpecies_1"/>
+    from ${parameterModel.tableName}
+    where  TimePoint &gt;= #{startTime} and TimePoint &lt; #{endTime} and
+    Area in
+    <foreach item="area" collection="parameterModel.areas" open="(" close=")" separator=",">
+        #{area}
+    </foreach>
+    group by Area
+  ${tailSql}
+  </select>
+
+  <select id="getAvgResultByRe" resultType="java.util.LinkedHashMap">
+     select
+      Area as area,
+      <choose>
+        <when test="tunit == 'm'.toString()">
+          DATE_FORMAT(TimePoint,'%Y-%m') as timePoint,
+        </when>
+        <when test="tunit == 'd'.toString()">
+          DATE_FORMAT(TimePoint,'%Y-%m-%d') as timePoint,
+        </when>
+        <otherwise>
+          timePoint,
+         </otherwise>
+      </choose>
+      <include refid="avgSpecies"/>
+      from ${tableName}
+      where  TimePoint &gt;= #{startTime} and TimePoint &lt; #{endTime}
+    and StationCode in
+    <foreach item="station" collection="stationList" open="(" close=")" separator=",">
+      #{station}
+    </foreach>
+  </select>
+</mapper>

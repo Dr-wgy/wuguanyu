@@ -1,0 +1,140 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.makenv.mapper.StationMapper">
+  <resultMap id="BaseResultMap" type="com.makenv.domain.Station">
+    <id column="stationId" jdbcType="VARCHAR" property="stationid" />
+    <result column="stationName" jdbcType="VARCHAR" property="stationname" />
+    <result column="cityId" jdbcType="INTEGER" property="cityid" />
+    <result column="latitude" jdbcType="DOUBLE" property="latitude" />
+    <result column="longitude" jdbcType="DOUBLE" property="longitude" />
+    <result column="cityName" jdbcType="VARCHAR" property="cityname" />
+  </resultMap>
+  <resultMap id="BaseResultMap1" type="com.makenv.vo.StationVo">
+    <id column="stationId" jdbcType="VARCHAR" property="stationId" />
+    <result column="stationName" jdbcType="VARCHAR" property="stationName" />
+    <result column="cityId" jdbcType="INTEGER" property="cityId" />
+    <result column="lat" jdbcType="DOUBLE" property="lat" />
+    <result column="lon" jdbcType="DOUBLE" property="lon" />
+    <result column="regionId" jdbcType="VARCHAR" property="regionId" />
+    <result column="cityName" jdbcType="VARCHAR" property="cityName" />
+  </resultMap>
+  <sql id="Base_Column_List">
+    stationId, stationName, cityId, latitude, longitude, cityName
+  </sql>
+  <select id="selectByPrimaryKey" parameterType="java.lang.String" resultMap="BaseResultMap">
+    select 
+    <include refid="Base_Column_List" />
+    from pm_station
+    where stationId = #{stationid,jdbcType=VARCHAR}
+  </select>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.String">
+    delete from pm_station
+    where stationId = #{stationid,jdbcType=VARCHAR}
+  </delete>
+  <insert id="insert" parameterType="com.makenv.domain.Station">
+    insert into pm_station (stationId, stationName, cityId, 
+      latitude, longitude, cityName
+      )
+    values (#{stationid,jdbcType=VARCHAR}, #{stationname,jdbcType=VARCHAR}, #{cityid,jdbcType=INTEGER}, 
+      #{latitude,jdbcType=DOUBLE}, #{longitude,jdbcType=DOUBLE}, #{cityname,jdbcType=VARCHAR}
+      )
+  </insert>
+  <insert id="insertSelective" parameterType="com.makenv.domain.Station">
+    insert into pm_station
+    <trim prefix="(" suffix=")" suffixOverrides=",">
+      <if test="stationid != null">
+        stationId,
+      </if>
+      <if test="stationname != null">
+        stationName,
+      </if>
+      <if test="cityid != null">
+        cityId,
+      </if>
+      <if test="latitude != null">
+        latitude,
+      </if>
+      <if test="longitude != null">
+        longitude,
+      </if>
+      <if test="cityname != null">
+        cityName,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides=",">
+      <if test="stationid != null">
+        #{stationid,jdbcType=VARCHAR},
+      </if>
+      <if test="stationname != null">
+        #{stationname,jdbcType=VARCHAR},
+      </if>
+      <if test="cityid != null">
+        #{cityid,jdbcType=INTEGER},
+      </if>
+      <if test="latitude != null">
+        #{latitude,jdbcType=DOUBLE},
+      </if>
+      <if test="longitude != null">
+        #{longitude,jdbcType=DOUBLE},
+      </if>
+      <if test="cityname != null">
+        #{cityname,jdbcType=VARCHAR},
+      </if>
+    </trim>
+  </insert>
+  <update id="updateByPrimaryKeySelective" parameterType="com.makenv.domain.Station">
+    update pm_station
+    <set>
+      <if test="stationname != null">
+        stationName = #{stationname,jdbcType=VARCHAR},
+      </if>
+      <if test="cityid != null">
+        cityId = #{cityid,jdbcType=INTEGER},
+      </if>
+      <if test="latitude != null">
+        latitude = #{latitude,jdbcType=DOUBLE},
+      </if>
+      <if test="longitude != null">
+        longitude = #{longitude,jdbcType=DOUBLE},
+      </if>
+      <if test="cityname != null">
+        cityName = #{cityname,jdbcType=VARCHAR},
+      </if>
+    </set>
+    where stationId = #{stationid,jdbcType=VARCHAR}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="com.makenv.domain.Station">
+    update pm_station
+    set stationName = #{stationname,jdbcType=VARCHAR},
+      cityId = #{cityid,jdbcType=INTEGER},
+      latitude = #{latitude,jdbcType=DOUBLE},
+      longitude = #{longitude,jdbcType=DOUBLE},
+      cityName = #{cityname,jdbcType=VARCHAR}
+    where stationId = #{stationid,jdbcType=VARCHAR}
+  </update>
+
+  <select id="selectAllStation" resultMap="BaseResultMap1">
+    SELECT
+      s.stationId,
+      s.stationName,
+      s.latitude AS lat,
+      s.cityId,
+      s.longitude AS lon,
+      c.regionId AS regionId,
+      s.cityName
+    FROM pm_station s LEFT JOIN pm_city c USING (cityId) where c.regionId is not null
+  </select>
+
+  <select id="getStationByCity" parameterType="string" resultMap="BaseResultMap">
+
+      select * from pm_station where cityName = #{__parameter}
+
+  </select>
+
+  <select id="getStationByCity1" parameterType="com.makenv.domain.City" resultMap="BaseResultMap">
+
+    select * from pm_station where cityName = #{cityname}
+
+  </select>
+
+</mapper>

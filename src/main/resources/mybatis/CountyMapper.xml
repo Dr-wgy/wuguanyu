@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.makenv.mapper.CountyMapper">
+  <resultMap id="BaseResultMap" type="com.makenv.domain.County">
+    <id column="id" jdbcType="INTEGER" property="id" />
+    <result column="countyID" jdbcType="INTEGER" property="countyid" />
+    <result column="county" jdbcType="VARCHAR" property="county" />
+  </resultMap>
+  <resultMap id="BaseResultMap1" type="com.makenv.vo.CountyVo">
+    <id column="id" jdbcType="INTEGER" property="id" />
+    <result column="regionId" jdbcType="INTEGER" property="regionId" />
+    <result column="regionName" jdbcType="VARCHAR" property="regionName" />
+  </resultMap>
+  <sql id="Base_Column_List">
+    id, countyID, county
+  </sql>
+  <select id="selectByPrimaryKey" parameterType="java.lang.Integer" resultMap="BaseResultMap">
+    select 
+    <include refid="Base_Column_List" />
+    from pm_county
+    where id = #{id,jdbcType=INTEGER}
+  </select>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Integer">
+    delete from pm_county
+    where id = #{id,jdbcType=INTEGER}
+  </delete>
+  <insert id="insert" parameterType="com.makenv.domain.County">
+    insert into pm_county (id, countyID, county
+      )
+    values (#{id,jdbcType=INTEGER}, #{countyid,jdbcType=INTEGER}, #{county,jdbcType=VARCHAR}
+      )
+  </insert>
+  <insert id="insertSelective" parameterType="com.makenv.domain.County">
+    insert into pm_county
+    <trim prefix="(" suffix=")" suffixOverrides=",">
+      <if test="id != null">
+        id,
+      </if>
+      <if test="countyid != null">
+        countyID,
+      </if>
+      <if test="county != null">
+        county,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides=",">
+      <if test="id != null">
+        #{id,jdbcType=INTEGER},
+      </if>
+      <if test="countyid != null">
+        #{countyid,jdbcType=INTEGER},
+      </if>
+      <if test="county != null">
+        #{county,jdbcType=VARCHAR},
+      </if>
+    </trim>
+  </insert>
+  <update id="updateByPrimaryKeySelective" parameterType="com.makenv.domain.County">
+    update pm_county
+    <set>
+      <if test="countyid != null">
+        countyID = #{countyid,jdbcType=INTEGER},
+      </if>
+      <if test="county != null">
+        county = #{county,jdbcType=VARCHAR},
+      </if>
+    </set>
+    where id = #{id,jdbcType=INTEGER}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="com.makenv.domain.County">
+    update pm_county
+    set countyID = #{countyid,jdbcType=INTEGER},
+      county = #{county,jdbcType=VARCHAR}
+    where id = #{id,jdbcType=INTEGER}
+  </update>
+
+  <select id="getAllCountyList" resultMap="BaseResultMap1">
+
+    select
+      id as id,
+      countyID as regionId,
+      county as regionName
+    from pm_county where countyID is not null
+
+  </select>
+</mapper>

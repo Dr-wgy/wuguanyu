@@ -1,0 +1,114 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.makenv.mapper.CityMapper">
+  <resultMap id="BaseResultMap" type="com.makenv.domain.City">
+    <id column="cityId" jdbcType="INTEGER" property="cityid" />
+    <result column="cityName" jdbcType="VARCHAR" property="cityname" />
+    <result column="regionId" jdbcType="VARCHAR" property="regionid" />
+    <result column="longitude" jdbcType="VARCHAR" property="longitude" />
+    <result column="latitude" jdbcType="VARCHAR" property="latitude" />
+  </resultMap>
+  <resultMap id="BaseResultMap1" type="com.makenv.vo.CityVo">
+    <id column="cityId" jdbcType="INTEGER" property="cityId" />
+    <result column="regionName" jdbcType="VARCHAR" property="regionName" />
+    <result column="regionId" jdbcType="VARCHAR" property="regionId" />
+    <result column="lon" jdbcType="VARCHAR" property="lon" />
+    <result column="lat" jdbcType="VARCHAR" property="lat" />
+  </resultMap>
+  <sql id="Base_Column_List">
+    cityId, cityName, regionId, longitude, latitude
+  </sql>
+  <select id="selectByPrimaryKey" parameterType="java.lang.Integer" resultMap="BaseResultMap">
+    select 
+    <include refid="Base_Column_List" />
+    from pm_city
+    where cityId = #{cityid,jdbcType=INTEGER}
+  </select>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Integer">
+    delete from pm_city
+    where cityId = #{cityid,jdbcType=INTEGER}
+  </delete>
+  <insert id="insert" parameterType="com.makenv.domain.City">
+    insert into pm_city (cityId, cityName, regionId, 
+      longitude, latitude
+      )
+    values (#{cityid,jdbcType=INTEGER}, #{cityname,jdbcType=VARCHAR}, #{regionid,jdbcType=VARCHAR}, 
+      #{longitude,jdbcType=VARCHAR}, #{latitude,jdbcType=VARCHAR}
+      )
+  </insert>
+  <insert id="insertSelective" parameterType="com.makenv.domain.City">
+    insert into pm_city
+    <trim prefix="(" suffix=")" suffixOverrides=",">
+      <if test="cityid != null">
+        cityId,
+      </if>
+      <if test="cityname != null">
+        cityName,
+      </if>
+      <if test="regionid != null">
+        regionId,
+      </if>
+      <if test="longitude != null">
+        longitude,
+      </if>
+      <if test="latitude != null">
+        latitude,
+      </if>
+      <if test="status != null">
+        status,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides=",">
+      <if test="cityid != null">
+        #{cityid,jdbcType=INTEGER},
+      </if>
+      <if test="cityname != null">
+        #{cityname,jdbcType=VARCHAR},
+      </if>
+      <if test="regionid != null">
+        #{regionid,jdbcType=VARCHAR},
+      </if>
+      <if test="longitude != null">
+        #{longitude,jdbcType=VARCHAR},
+      </if>
+      <if test="latitude != null">
+        #{latitude,jdbcType=VARCHAR},
+      </if>
+    </trim>
+  </insert>
+  <update id="updateByPrimaryKeySelective" parameterType="com.makenv.domain.City">
+    update pm_city
+    <set>
+      <if test="cityname != null">
+        cityName = #{cityname,jdbcType=VARCHAR},
+      </if>
+      <if test="regionid != null">
+        regionId = #{regionid,jdbcType=VARCHAR},
+      </if>
+      <if test="longitude != null">
+        longitude = #{longitude,jdbcType=VARCHAR},
+      </if>
+      <if test="latitude != null">
+        latitude = #{latitude,jdbcType=VARCHAR},
+      </if>
+    </set>
+    where cityId = #{cityid,jdbcType=INTEGER}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="com.makenv.domain.City">
+    update pm_city
+    set cityName = #{cityname,jdbcType=VARCHAR},
+      regionId = #{regionid,jdbcType=VARCHAR},
+      longitude = #{longitude,jdbcType=VARCHAR},
+      latitude = #{latitude,jdbcType=VARCHAR},
+    where cityId = #{cityid,jdbcType=INTEGER}
+  </update>
+  <select id="selectAllCity" resultMap="BaseResultMap1">
+    SELECT
+      cityId,
+      cityName AS regionName,
+      substring(regionId,1,4) AS regionId
+<!--      ,longitude AS lon,
+      latitude AS lat-->
+    FROM pm_city where regionId is not null order by regionId
+  </select>
+</mapper>

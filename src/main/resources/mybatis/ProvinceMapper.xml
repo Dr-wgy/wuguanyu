@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.makenv.mapper.ProvinceMapper">
+  <resultMap id="BaseResultMap" type="com.makenv.domain.Province">
+    <id column="id" jdbcType="INTEGER" property="id" />
+    <result column="provinceID" jdbcType="INTEGER" property="provinceid" />
+    <result column="provinceName" jdbcType="VARCHAR" property="provincename" />
+  </resultMap>
+  <resultMap id="BaseResultMap1" type="com.makenv.vo.ProvinceVo">
+    <id column="id" jdbcType="INTEGER" property="id" />
+    <result column="regionId" jdbcType="INTEGER" property="regionId" />
+    <result column="regionName" jdbcType="VARCHAR" property="regionName" />
+  </resultMap>
+  <sql id="Base_Column_List">
+    id, provinceID, provinceName
+  </sql>
+  <select id="selectByPrimaryKey" parameterType="java.lang.Integer" resultMap="BaseResultMap">
+    select 
+    <include refid="Base_Column_List" />
+    from pm_province
+    where id = #{id,jdbcType=INTEGER}
+  </select>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Integer">
+    delete from pm_province
+    where id = #{id,jdbcType=INTEGER}
+  </delete>
+  <insert id="insert" parameterType="com.makenv.domain.Province">
+    insert into pm_province (id, provinceID, provinceName
+      )
+    values (#{id,jdbcType=INTEGER}, #{provinceid,jdbcType=INTEGER}, #{provincename,jdbcType=VARCHAR}
+      )
+  </insert>
+  <insert id="insertSelective" parameterType="com.makenv.domain.Province">
+    insert into pm_province
+    <trim prefix="(" suffix=")" suffixOverrides=",">
+      <if test="id != null">
+        id,
+      </if>
+      <if test="provinceid != null">
+        provinceID,
+      </if>
+      <if test="provincename != null">
+        provinceName,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides=",">
+      <if test="id != null">
+        #{id,jdbcType=INTEGER},
+      </if>
+      <if test="provinceid != null">
+        #{provinceid,jdbcType=INTEGER},
+      </if>
+      <if test="provincename != null">
+        #{provincename,jdbcType=VARCHAR},
+      </if>
+    </trim>
+  </insert>
+  <update id="updateByPrimaryKeySelective" parameterType="com.makenv.domain.Province">
+    update pm_province
+    <set>
+      <if test="provinceid != null">
+        provinceID = #{provinceid,jdbcType=INTEGER},
+      </if>
+      <if test="provincename != null">
+        provinceName = #{provincename,jdbcType=VARCHAR},
+      </if>
+    </set>
+    where id = #{id,jdbcType=INTEGER}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="com.makenv.domain.Province">
+    update pm_province
+    set provinceID = #{provinceid,jdbcType=INTEGER},
+      provinceName = #{provincename,jdbcType=VARCHAR}
+    where id = #{id,jdbcType=INTEGER}
+  </update>
+
+  <!--获取省级缓存的到两位代码-->
+  <select id="getAllProvinces" resultMap="BaseResultMap1">
+
+      SELECT
+        id,
+        SUBSTRING(provinceId,1,2) AS regionId ,
+        provinceName as regionName
+      FROM pm_province where provinceId is not null
+
+  </select>
+</mapper>

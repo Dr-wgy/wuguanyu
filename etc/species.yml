@@ -1,0 +1,43 @@
+species:
+ - SO2
+ - NO2
+ - PM2_5
+ - PM10
+ - CO
+ - O3_8h
+ - AQI
+ - O3
+
+speciesNoAQI:
+ - SO2
+ - NO2
+ - PM2_5
+ - PM10
+ - CO
+ - O3_8h
+ - O3
+ 
+speciesFilter:
+ SO2: AVG(SO2)>150
+ NO2: AVG(NO2)>80
+ PM2_5: AVG(PM2_5)>75
+ PM10: AVG(PM10)>150
+ CO: AVG(CO)>4
+ O3_8h: MAX(O3_8h)>160
+ O3: MAX(O3)>200
+ 
+AQIFilter:
+ - "AVG(AQI)<=50"
+ - "AVG(AQI) between 51 and 100"
+ - "AVG(AQI) between 101 and 150"
+ - "AVG(AQI) between 151 and 200"
+ - "AVG(AQI) between 201 and 300"
+ - "AVG(AQI) > 300"
+
+AQIName:
+ - 优
+ - 良
+ - 轻度污染
+ - 中度污染
+ - 重度污染
+ - 严重污染

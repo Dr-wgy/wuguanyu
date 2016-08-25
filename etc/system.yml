@@ -1,0 +1,7 @@
+isCache: true
+cacheDir: data/cache
+yearTable:
+ 2013: Sum_All_PM25_copy
+ default: PM_25
+autoBuild: true
+startYear: 2013
