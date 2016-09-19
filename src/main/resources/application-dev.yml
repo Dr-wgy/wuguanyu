@@ -7,11 +7,10 @@ spring:
   jackson:
     serialization:
       WRITE_DATES_AS_TIMESTAMPS: false
-  datasource:
-    url: jdbc:mysql://127.0.0.1:3306/china?allowMultiQueries=true&autoReconnect=true&useUnicode=true&characterEncoding=UTF-8
-    username: root
-    password: 123456
-    type: com.alibaba.druid.pool.DruidDataSource
+  datasource1:
+    url: jdbc:mysql://166.111.42.46:3306/china?allowMultiQueries=true&autoReconnect=true
+    username: curr
+    password: Je5i2E5En1mE
     driver-class: com.mysql.jdbc.Driver
     testWhileIdle : true
     validationQuery: SELECT 1

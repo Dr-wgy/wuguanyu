@@ -1,5 +1,7 @@
 package com.makenv.service.impl;
 
+import com.makenv.annotation.DataSource;
+import com.makenv.enums.DataBaseType;
 import com.makenv.mapper.CityMapper;
 import com.makenv.service.CityService;
 import com.makenv.vo.CityVo;
@@ -25,7 +27,7 @@ public class CityServiceImpl implements CityService {
     private CityMapper cityMapper;
 
     @Override
-    @Transactional(readOnly = true)
+    @DataSource(name = DataBaseType.db2)
     public List<CityVo> getAllCity() {
 
         return cityMapper.selectAllCity();

@@ -39,6 +39,16 @@
     SO2_24h, StationCode, TimePoint
   </sql>
 
+  <sql id="commonSelf1">
+    AVG(AQI), Area, AVG(CO), AVG(CO_24h),
+    ID, Latitude, Longitude,
+    AVG(NO2), AVG(NO2_24h), AVG(O3), AVG(O3_24h),
+    AVG(O3_8h), AVG(O3_8h_24h), OrderId, PM10,
+    AVG(PM10_24h), AVG(PM2_5), AVG(PM2_5_24h), PositionName,
+    PrimaryPollutant, Quality, AVG(SO2),
+    AVG(SO2_24h), StationCode, TimePoint
+  </sql>
+
   <sql id="avgSpecies">
     AVG(SO2) AS SO2,
     AVG(NO2) AS NO2,
@@ -99,15 +109,127 @@
 
   </select>
 
-  <select id="selectByYearResultByProvince" resultType="map">
+  <select id="selectAvgYearResultByProvince" resultType="map">
+    select
+    <include refid="avgSpecies"/>
+    from (
+      <choose>
+          <when test="repeatCodes != null and repeatCodes.size()!=0">
+            SELECT
+              <include refid="avgSpecies"/>
+            from
+            (
+              SELECT
+                <include refid="allColumn"/>
+              FROM ${tableName} where YEAR(TimePoint) = #{year}
+              and StationCode in
+              <foreach item="station" collection="stationList" open="(" close=")" separator=",">
+                #{station}
+              </foreach>
+            union all
+            SELECT
+              <include refid="allColumn"/>
+            FROM pm_25_JJJ where YEAR(TimePoint) = #{year}
+            and StationCode in
+            <foreach item="station" collection="stationList" open="(" close=")" separator=",">
+              #{station}
+            </foreach>
+            union all
+              select
+                <include refid="commonSelf1"/>
+              from (
+                  select
+                  <include refid="allColumn"/>
+                  from ${tableName}
+                  <where>
+                    StationCode in
+                    <foreach item="station" collection="repeatCodes" open="(" close=")" separator=",">
+                      #{station}
+                    </foreach>
+                    and YEAR(TimePoint) = #{year}
+                  </where>
+                  union All
+                  select
+                  <include refid="allColumn"/>
+                  from pm_25_JJJ
+                  <where>
+                    StationCode in
+                    <foreach item="station" collection="repeatCodes" open="(" close=")" separator=",">
+                      #{station}
+                    </foreach>
+                    and YEAR(TimePoint) = #{year}
+                  </where>
+                  ) t2 group by StationCode
+            ) t1 group by Area
+          </when>
+          <otherwise>
+            SELECT
+              <include refid="avgSpecies"/> from
+            (
+            SELECT
+              <include refid="allColumn"/>
+            FROM ${tableName} where YEAR(TimePoint) = #{year}
+            and StationCode in
+            <foreach item="station" collection="stationList" open="(" close=")" separator=",">
+              #{station}
+            </foreach>
+            union all
+            SELECT
+            <include refid="allColumn"/>
+            FROM pm_25_JJJ where YEAR(TimePoint) = #{year}
+            and StationCode in
+            <foreach item="station" collection="stationList" open="(" close=")" separator=",">
+              #{station}
+            </foreach>
+            ) t1 group by Area
+          </otherwise>
+      </choose>
+    ) t
+  </select>
+
+  <select id="selectAvgYearResultByCity" resultType="map">
     SELECT
       <include refid="avgSpecies"/>
-    FROM ${tableName} where YEAR(TimePoint) = #{year}
-    and StationCode in
-    <foreach item="station" collection="#{stationList}" open="(" close=")" separator=",">
-      #{station.stationId}
-    </foreach>
-
+    from
+    (
+      SELECT
+        <include refid="allColumn"/>
+      FROM ${tableName} where YEAR(TimePoint) = #{year}
+      and StationCode in
+      <foreach item="station" collection="stationList" open="(" close=")" separator=",">
+        #{station}
+      </foreach>
+      union all
+      SELECT
+        <include refid="allColumn"/>
+      FROM pm_25_JJJ where YEAR(TimePoint) = #{year}
+      and StationCode in
+      <foreach item="station" collection="stationList" open="(" close=")" separator=",">
+        #{station}
+      </foreach>
+      <if test="repeatCodes != null and repeatCodes.size()!=0">
+        union all
+        select
+          <include refid="commonSelf1"/>
+        from (
+          select
+            <include refid="allColumn"/>
+          from #{tableName} where YEAR(TimePoint) = #{year}
+          and StationCode in
+          <foreach item="station" collection="repeatCodes" open="(" close=")" separator=",">
+            #{station}
+          </foreach>
+          union all
+          select
+          <include refid="allColumn"/>
+          from pm_ 25_JJJ where YEAR(TimePoint) = #{year}
+          and StationCode in
+          <foreach item="station" collection="repeatCodes" open="(" close=")" separator=",">
+            #{station}
+          </foreach>
+        ) t1 group by StationCode
+      </if>
+    )temp
   </select>
 
   <select id="selectAvgYearResultByStationCode" resultType="map">
@@ -121,15 +243,81 @@
       </foreach>
   </select>
 
-  <select id="selectAvgMonthResultByStationCode" resultType="map">
+  <select id="getAvgMonthResultByCity" resultType="map">
     select
+      TimePoint,
       <include refid="avgSpecies"/>
-      from ${tableName} where
-      and StationCode in
-      <foreach item="station" collection="stationList" open="(" close=")" separator=",">
-        #{station.stationId}
-      </foreach>
-       and TimePoint &gt;= #{startTime} and TimePoint &lt; #{endTime}
+    from (
+      select
+        <include refid="allColumn"/>
+        from ${tableName}
+        <where>
+          StationCode in
+          <foreach item="station" collection="stationList" open="(" close=")" separator=",">
+            #{station}
+          </foreach>
+          and TimePoint &gt;= #{startTime} and TimePoint &lt; #{endTime}
+        </where>
+      union All
+      select
+      <include refid="allColumn"/>
+      from pm_25_JJJ
+      <where>
+        StationCode in
+        <foreach item="station" collection="stationList" open="(" close=")" separator=",">
+          #{station}
+        </foreach>
+        and TimePoint &gt;= #{startTime} and TimePoint &lt; #{endTime}
+      </where>
+
+      <if test="repeatCodes!=null and repeatCodes.size()!=0">
+
+        union All
+
+        select
+          <include refid="commonSelf1"/>
+        from (
+          select
+            <include refid="allColumn"/>
+          from ${tableName}
+          <where>
+            StationCode in
+            <foreach item="station" collection="repeatCodes" open="(" close=")" separator=",">
+              #{station}
+            </foreach>
+            and TimePoint &gt;= #{startTime} and TimePoint &lt; #{endTime}
+          </where>
+          union All
+          select
+            <include refid="allColumn"/>
+          from pm_25_JJJ
+          <where>
+            StationCode in
+            <foreach item="station" collection="repeatCodes" open="(" close=")" separator=",">
+              #{station}
+            </foreach>
+            and TimePoint &gt;= #{startTime} and TimePoint &lt; #{endTime}
+          </where>
+        ) t1 group by StationCode
+      </if>
+    ) t
+
+  </select>
+
+  <select id="getAvgMonthResultByProvince" resultType="map">
+
+    SELECT <include refid="avgSpecies"/>
+      (
+        select Area as area
+        <include refid="avgSpecies"/>
+        from ${tableName} where
+        and StationCode in
+        <foreach item="station" collection="stationList" open="(" close=")" separator=",">
+          #{station.stationId}
+        </foreach>
+        and TimePoint &gt;= #{startTime} and TimePoint &lt; #{endTime} group by area
+       )
+    t
 
   </select>
 
@@ -140,29 +328,47 @@
       (
           select
             <include refid="speciesFilter"/>
-          from ${tableName} where YEAR(TimePoint) = #{year}
-          and StationCode in
-          <foreach item="station" collection="stationList" open="(" close=")" separator=",">
-            #{station.stationId}
-          </foreach>
-          group by DATE(TimePoint) )As t
-  </select>
+          from (
+            select
+              <include refid="allColumn"/>
+            from ${tableName} where YEAR(TimePoint) = #{year}
+            and StationCode in
+            <foreach item="station" collection="stationList" open="(" close=")" separator=",">
+              #{station}
+            </foreach>
+            union All
+            select
+            <include refid="allColumn"/>
+            from pm_25_JJJ where YEAR(TimePoint) = #{year}
+            and StationCode in
+            <foreach item="station" collection="stationList" open="(" close=")" separator=",">
+              #{station}
+            </foreach>
+            <if test="repeatCodes!=null and repeatCodes.size()!=0">
+              union all
+              select
+              <include refid="commonSelf1"/>
+              from (
+              select
+              <include refid="allColumn"/>
+              from ${tableName} where YEAR(TimePoint) = #{year}
+              and StationCode in
+              <foreach item="station" collection="repeatCodes" open="(" close=")" separator=",">
+                #{station}
+              </foreach>
+              union all
+              select
+              <include refid="allColumn"/>
+              from pm_ 25_JJJ where YEAR(TimePoint) = #{year}
+              and StationCode in
+              <foreach item="station" collection="repeatCodes" open="(" close=")" separator=",">
+                #{station}
+              </foreach>
+              ) t1 group by StationCode
 
-  <select id="selectOverStandardGroupByDate1" resultType="map">
-    select
-      <include refid="sumSpecies"/>
-    from
-    (
-      select
-      <include refid="speciesFilter"/>
-      from ${tableName} where
-      and StationCode in
-      <foreach item="station" collection="stationList" open="(" close=")" separator=",">
-        #{station.stationId}
-      </foreach>
-      and TimePoint &gt;= #{startTime} and TimePoint &lt; #{endTime}
-      group by DATE(TimePoint) )As t
-
+            </if>
+          ) tem group by DATE(TimePoint)
+      )As t
   </select>
 
   <select id="getLastTimeSpanResultData" resultType="map">
@@ -178,6 +384,55 @@
       group by ${dateUnit}(timepoint) order by timepoint desc
   </select>
 
+  <!--不在京津冀-->
+  <select id="getLastTimeSpanResultDataByNOT_JING_JIN_JI" resultType="map">
+    select
+    timepoint,
+      <include refid="avgSpecies"/>
+    from
+    PM_25 where  StationCode in
+    <foreach item="station" collection="stationList" open="(" close=")" separator=",">
+      #{station.stationId}
+    </foreach>
+    and TimePoint &gt;= #{startTime} and TimePoint &lt; #{endTime}
+    and Area not in
+    <foreach item="cityName" collection="excludeCityNames" open="(" close=")" separator=",">
+      #{cityName}
+    </foreach>
+    group by ${dateUnit}(timepoint) order by timepoint desc
+  </select>
+
+
+  <select id="getLastTimeSpanResultDataByJING_JIN_JI" resultType="map">
+    select
+    timepoint,
+    <include refid="avgSpecies"/>
+    from(
+      select
+        <include refid="allColumn"/>
+      from   PM_25
+      <where>  StationCode in
+        <foreach item="station" collection="stationList" open="(" close=")" separator=",">
+          #{station.stationId}
+        </foreach>
+        and TimePoint &gt;= #{startTime} and TimePoint &lt; #{endTime}
+      </where>
+    union
+      select
+        <include refid="allColumn"/>
+      from   pm_25_JJJ
+      <where>  StationCode in
+        <foreach item="station" collection="stationList" open="(" close=")" separator=",">
+          #{station.stationId}
+        </foreach>
+        and TimePoint &gt;= #{startTime} and TimePoint &lt; #{endTime}
+      </where>
+
+    )t group by ${dateUnit}(timepoint) order by timepoint desc
+
+  </select>
+
+
 
   <select id="getAllCurrentPlace" resultType="map" parameterType="com.makenv.vo.CityParamVo">
 
@@ -189,17 +444,172 @@
       TimePoint
       <choose>
         <when test="isTimePointOrTimeInterval">
-          = '${dateTime}'
+          <choose>
+            <when test="dateTime != null and dateTime!=''">
+              = #{dateTime}
+            </when>
+            <otherwise>
+                = (select MAX(Timepoint) from ${tableName})
+            </otherwise>
+          </choose>
         </when>
         <otherwise>
-          &gt;= #{beforeTime} and  &lt;#{endTime}
+          &gt;= #{beforeTime} and TimePoint  &lt;#{afterTime}
         </otherwise>
       </choose>
     </where>
     group by ${area}
+
   </select>
 
-<select id="getRankResultDataByArea" resultType="com.makenv.vo.RankAreaData">
+
+  <select id="getAllCurrentPlaceByJING_JIN_JI" resultType="java.util.LinkedHashMap">
+    select
+    ${city.area} as area,
+    <include refid="avgSpecies"/>
+    from (
+
+    select
+    <include refid="allColumn"/>
+    from ${city.tableName}
+    <where>
+      TimePoint
+      <choose>
+        <when test="city.isTimePointOrTimeInterval">
+          <choose>
+            <when test="city.dateTime != null and city.dateTime!=''">
+              = #{city.dateTime}
+            </when>
+            <otherwise>
+              = (select min(TimePoint) from (select MAX(TimePoint) as TimePoint from pm_25_JJJ union all select MAX(TimePoint) as TimePoint from ${city.tableName}) temp)
+            </otherwise>
+          </choose>
+        </when>
+        <otherwise>
+          &gt;= #{city.beforeTime} and TimePoint  &lt;#{city.afterTime}
+        </otherwise>
+      </choose>
+      and StationCode is not null and StationCode &lt;&gt; ''and StationCode &lt;&gt; 'null'
+      and StationCode  not in
+      <foreach item="stationCode" collection="extraMap.repeatStationCodes" open="(" close=")" separator=",">
+        #{stationCode}
+      </foreach>
+    </where>
+
+    union all
+
+    select
+    <include refid="allColumn"/>
+    from pm_25_JJJ
+    <where>
+      TimePoint
+      <choose>
+        <when test="city.isTimePointOrTimeInterval">
+          <choose>
+            <when test="city.dateTime != null and city.dateTime!=''">
+              = #{city.dateTime}
+            </when>
+            <otherwise>
+              = (select MAX(Timepoint) from ${city.tableName})
+            </otherwise>
+          </choose>
+        </when>
+        <otherwise>
+          &gt;= #{city.beforeTime} and TimePoint  &lt;#{city.afterTime}
+        </otherwise>
+      </choose>
+      and StationCode is not null and StationCode &lt;&gt; ''and StationCode &lt;&gt; 'null'
+      and StationCode not in
+      <foreach item="stationCode" collection="extraMap.repeatStationCodes" open="(" close=")" separator=",">
+        #{stationCode}
+      </foreach>
+    </where>
+
+    <if test="extraMap.repeatStationCodes!=null and extraMap.repeatStationCodes.size()!=0">
+      union all
+
+      select
+
+        AVG(AQI), Area, AVG(CO), AVG(CO_24h),
+        ID, Latitude, Longitude,
+        AVG(NO2), AVG(NO2_24h), AVG(O3), AVG(O3_24h),
+        AVG(O3_8h), AVG(O3_8h_24h), OrderId, PM10,
+        AVG(PM10_24h), AVG(PM2_5), AVG(PM2_5_24h), PositionName,
+        PrimaryPollutant, Quality, AVG(SO2),
+        AVG(SO2_24h), StationCode, TimePoint
+      from (
+        select
+         <include refid="allColumn"/>
+        from ${city.tableName}
+          <where>
+            TimePoint
+            <choose>
+              <when test="city.isTimePointOrTimeInterval">
+                <choose>
+                  <when test="city.dateTime != null and city.dateTime!=''">
+                    = #{city.dateTime}
+                  </when>
+                  <otherwise>
+                    = (select MAX(Timepoint) from ${city.tableName})
+                  </otherwise>
+                </choose>
+              </when>
+              <otherwise>
+                &gt;= #{city.beforeTime} and TimePoint  &lt;#{city.afterTime}
+              </otherwise>
+            </choose>
+            and StationCode is not null and StationCode &lt;&gt; ''and StationCode &lt;&gt; 'null'
+            and StationCode  in
+            <foreach item="stationCode" collection="extraMap.repeatStationCodes" open="(" close=")" separator=",">
+              #{stationCode}
+            </foreach>
+          </where>
+
+        union all
+
+        select
+          <include refid="allColumn"/>
+        from pm_25_JJJ
+          <where>
+            TimePoint
+            <choose>
+              <when test="city.isTimePointOrTimeInterval">
+                <choose>
+                  <when test="city.dateTime != null and city.dateTime!=''">
+                    = #{city.dateTime}
+                  </when>
+                  <otherwise>
+                    = (select MAX(Timepoint) from ${city.tableName})
+                  </otherwise>
+                </choose>
+              </when>
+              <otherwise>
+                &gt;= #{city.beforeTime} and TimePoint  &lt;#{city.afterTime}
+              </otherwise>
+            </choose>
+            and StationCode is not null and StationCode &lt;&gt; ''and StationCode &lt;&gt; 'null'
+            and StationCode in
+            <foreach item="stationCode" collection="extraMap.repeatStationCodes" open="(" close=")" separator=",">
+              #{stationCode}
+            </foreach>
+          </where>
+      ) t1 group by StationCode
+
+    </if>
+
+    ) t group by ${city.area}
+
+
+  </select>
+
+  <select id="getRepeatStationCodes" resultType="string">
+    select StationCode from (
+    select DISTINCT StationCode from PM_25 where StationCode is not null and StationCode &lt;&gt; ''and StationCode &lt;&gt; 'null' union all select DISTINCT StationCode from pm_25_JJJ where StationCode is not null and StationCode &lt;&gt; ''and StationCode &lt;&gt;'null'
+    ) t GROUP BY StationCode HAVING count(StationCode) &gt; 1
+  </select>
+
+
+<select id="getRankResultDataByArea" resultType="java.util.LinkedHashMap">
     ${preSql}
     ${headSql}
     select
@@ -248,4 +658,458 @@
       #{station}
     </foreach>
   </select>
+
+  <select id="getAvgResultByAreaOrStation"  resultType="java.util.LinkedHashMap">
+    select
+    <choose>
+      <when test="unit == 'm'.toString()">
+        DATE_FORMAT(TimePoint,'%Y-%m') as timePoint,
+      </when>
+      <when test="unit == 'd'.toString()">
+        DATE_FORMAT(TimePoint,'%Y-%m-%d') as timePoint,
+      </when>
+      <otherwise>
+        DATE_FORMAT(TimePoint,'%Y-%m-%d %H') as timePoint,
+      </otherwise>
+    </choose>
+    <include refid="avgSpecies"/>
+    from (
+
+        select
+
+          <include refid="allColumn"/>
+
+        from ${tableName}
+
+          where  TimePoint &gt;= #{startDateTime} and TimePoint &lt; #{endDateTime}
+
+          and StationCode  in
+          <foreach item="stationCode" collection="stationIds" open="(" close=")" separator=",">
+            #{stationCode}
+          </foreach>
+
+        union all
+
+
+          select
+
+            <include refid="allColumn"/>
+
+          from pm_25_JJJ
+
+            where  TimePoint &gt;= #{startDateTime} and TimePoint &lt; #{endDateTime}
+            and StationCode  in
+            <foreach item="stationCode" collection="stationIds" open="(" close=")" separator=",">
+              #{stationCode}
+            </foreach>
+
+
+      ) t group by
+      <choose>
+        <when test="unit == 'm'.toString()">
+          DATE_FORMAT(TimePoint,'%Y-%m')
+        </when>
+        <when test="unit == 'd'.toString()">
+          DATE_FORMAT(TimePoint,'%Y-%m-%d')
+        </when>
+        <otherwise>
+          DATE_FORMAT(TimePoint,'%Y-%m-%d %H')
+        </otherwise>
+      </choose>
+
+  </select>
+
+  <select id="getQualityData" resultType="java.util.LinkedHashMap">
+    select
+      sum(优) as 优,
+      sum(良) as 良,
+      sum(轻度污染) as 轻度污染,
+      sum(中度污染) as 中度污染,
+      sum(重度污染) as 重度污染,
+      sum(严重污染) as 严重污染
+    from
+    (
+      select AVG(AQI)&lt;= 50  as 优,
+        AVG(AQI) between 51 and 100 as 良,
+        AVG(AQI) between 101 and 150 as 轻度污染,
+        AVG(AQI) between 151 and 200 as 中度污染,
+        AVG(AQI) between 201 and 300 as 重度污染,
+        AVG(AQI) &gt; 300 as 严重污染 from (
+          select
+            AQI,TimePoint from PM_25
+          where TimePoint &gt;=#{startTime}
+            and TimePoint &lt;#{endTime}
+            and StationCode in
+            <foreach item="stationCode" collection="stationList" open="(" close=")" separator=",">
+              #{stationCode}
+            </foreach>
+          union all
+          select
+            AQI,TimePoint from pm_25_JJJ
+          where TimePoint &gt;=#{startTime}
+          and TimePoint &lt;#{endTime}
+          and StationCode in
+          <foreach item="stationCode" collection="stationList" open="(" close=")" separator=",">
+            #{stationCode}
+          </foreach>
+        ) t1
+    <choose>
+       <when test="unit == 'm'.toString()">
+          group By DATE(TimePoint)
+      </when>
+      <when test="unit == 'd'.toString()">
+          group By HOUR(TimePoint)
+      </when>
+    </choose>
+    ) as t
+  </select>
+
+  <select id="getHevData" resultType="java.util.LinkedHashMap">
+    select
+    count(1) as ct,
+    <include refid="avgSpecies"/>
+    from (
+      select
+        <include refid="avgSpecies"/>
+      from (
+        select
+          <include refid="allColumn"></include>
+        from PM_25
+        where TimePoint &gt;=#{startTime}
+        and TimePoint &lt;#{endTime}
+        and StationCode in
+        <foreach item="stationCode" collection="stationList" open="(" close=")" separator=",">
+          #{stationCode}
+        </foreach>
+        union all
+        select
+          <include refid="allColumn"></include>
+        from pm_25_JJJ
+        where TimePoint &gt;=#{startTime}
+        and TimePoint &lt;#{endTime}
+        and StationCode in
+        <foreach item="stationCode" collection="stationList" open="(" close=")" separator=",">
+          #{stationCode}
+        </foreach>
+
+        <if test="repeatStationCodes!=null and repeatStationCodes.size()!=0">
+
+          union all
+
+          select
+            AVG(AQI), Area, AVG(CO), AVG(CO_24h),
+            ID, Latitude, Longitude,
+            AVG(NO2), AVG(NO2_24h), AVG(O3), AVG(O3_24h),
+            AVG(O3_8h), AVG(O3_8h_24h), OrderId, PM10,
+            AVG(PM10_24h), AVG(PM2_5), AVG(PM2_5_24h), PositionName,
+            PrimaryPollutant, Quality, AVG(SO2),
+            AVG(SO2_24h), StationCode, TimePoint
+          from (
+            select
+              <include refid="allColumn"/>
+            from PM_25
+            <where>
+              TimePoint &gt;=#{startTime}
+              and TimePoint &lt;#{endTime}
+              and StationCode  in
+              <foreach item="stationCode" collection="repeatStationCodes" open="(" close=")" separator=",">
+                #{stationCode}
+              </foreach>
+            </where>
+
+            union all
+
+            select
+              <include refid="allColumn"/>
+            from pm_25_JJJ
+            <where>
+              TimePoint
+              TimePoint &gt;=#{startTime}
+              and TimePoint &lt;#{endTime}
+              and StationCode is not null and StationCode &lt;&gt; ''and StationCode &lt;&gt; 'null'
+              and StationCode  in
+              <foreach item="stationCode" collection="repeatStationCodes" open="(" close=")" separator=",">
+                #{stationCode}
+              </foreach>
+              and StationCode in
+              <foreach item="stationCode" collection="repeatStationCodes" open="(" close=")" separator=",">
+                #{stationCode}
+              </foreach>
+            </where>
+          ) t2 group by StationCode
+        </if>
+        ) as t1  group by DATE(TimePoint) ${tailSql}
+      ) as t
+  </select>
+
+  <select id="getMaxMinResultByCity" resultType="java.util.LinkedHashMap">
+    select MAX(AQI) as MAX,MIN(AQI) as MIN,dt from
+    (
+      select
+        AVG(AQI) as AQI,TimePoint as dt
+      from (
+        select
+          AQI,TimePoint
+        from  ${tableName} where
+        TimePoint &gt;=#{startTime}
+        and TimePoint &lt;#{endTime}
+        and StationCode in
+        <foreach item="stationCode" collection="stationList" open="(" close=")" separator=",">
+          #{stationCode}
+        </foreach>
+        union all
+        select
+          AQI,TimePoint
+        from pm_25_JJJ
+        where
+          TimePoint &gt;=#{startTime}
+          and TimePoint &lt;#{endTime}
+          and StationCode in
+          <foreach item="stationCode" collection="stationList" open="(" close=")" separator=",">
+            #{stationCode}
+          </foreach>
+        <if test="repeatCodes != null and repeatCodes.size()!=0">
+          union all
+          select AVG(AQI),TimePoint
+          from  (
+            select
+              AQI,TimePoint
+            from ${tableName}
+            <where>
+              TimePoint &gt;=#{startTime}
+              and TimePoint &lt;#{endTime}
+              and StationCode in
+              <foreach item="stationCode" collection="repeatCodes" open="(" close=")" separator=",">
+                #{stationCode}
+              </foreach>
+            </where>
+            union all
+            select
+              AQI,TimePoint
+            from pm_25_JJJ
+            <where>
+              TimePoint &gt;=#{startTime}
+              and TimePoint &lt;#{endTime}
+              and StationCode in
+              <foreach item="stationCode" collection="repeatCodes" open="(" close=")" separator=",">
+                #{stationCode}
+              </foreach>
+            </where>
+          ) t2 group by StationCode
+        </if>
+        ) t1 group by DATE(TimePoint)
+    )t
+  </select>
+
+  <select id="getRankALLResultDataByArea" resultType="java.util.LinkedHashMap">
+    ${preSql}
+    ${headSql}
+    select
+        DATE_FORMAT(TimePoint,'%Y-%m') as timePoint,
+    Area as area,
+    <include refid="avgSpecies_1"/>
+    from (
+    <choose>
+      <when test="parameterModel.repeatCodes!=null and parameterModel.repeatCodes">
+        select
+          <include refid="allColumn"/>
+        from ${parameterModel.tableName}
+        where  TimePoint &gt;= #{parameterModel.startTime} and TimePoint &lt; #{parameterModel.endTime} and
+        Area in
+        <foreach item="area" collection="parameterModel.areas" open="(" close=")" separator=",">
+          #{area}
+        </foreach>
+        and StationCode not in
+        <foreach item="stationCode" collection="parameterModel.repeatCodes" open="(" close=")" separator=",">
+          #{stationCode}
+        </foreach>
+        union all
+        select
+          <include refid="allColumn"/>
+        from pm_25_JJJ
+        where  TimePoint &gt;= #{parameterModel.startTime} and TimePoint &lt; #{parameterModel.endTime} and
+        Area in
+        <foreach item="area" collection="parameterModel.areas" open="(" close=")" separator=",">
+          #{area}
+        </foreach>
+        and StationCode not in
+        <foreach item="stationCode" collection="parameterModel.repeatCodes" open="(" close=")" separator=",">
+          #{stationCode}
+        </foreach>
+        union all
+        select
+          <include refid="commonSelf1"/>
+        from (
+          select
+            <include refid="allColumn"/>
+          from ${parameterModel.tableName}
+          where  TimePoint &gt;= #{parameterModel.startTime} and TimePoint &lt; #{parameterModel.endTime} and
+          Area in
+          <foreach item="area" collection="parameterModel.areas" open="(" close=")" separator=",">
+            #{area}
+          </foreach>
+          and StationCode in
+          <foreach item="stationCode" collection="parameterModel.repeatCodes" open="(" close=")" separator=",">
+            #{stationCode}
+          </foreach>
+          union all
+          select
+            <include refid="allColumn"/>
+          from pm_25_JJJ
+          where  TimePoint &gt;= #{parameterModel.startTime} and TimePoint &lt; #{parameterModel.endTime} and
+          Area in
+          <foreach item="area" collection="parameterModel.areas" open="(" close=")" separator=",">
+            #{area}
+          </foreach>
+          and StationCode in
+          <foreach item="stationCode" collection="parameterModel.repeatCodes" open="(" close=")" separator=",">
+            #{stationCode}
+          </foreach>
+        ) tem group by StationCode
+      </when>
+      <otherwise>
+        select
+        <include refid="allColumn"/>
+        from ${parameterModel.tableName}
+        where  TimePoint &gt;= #{parameterModel.startTime} and TimePoint &lt; #{parameterModel.endTime} and
+        Area in
+        <foreach item="area" collection="parameterModel.areas" open="(" close=")" separator=",">
+          #{area}
+        </foreach>
+        union all
+        select
+        <include refid="allColumn"/>
+        from pm_25_JJJ
+        where  TimePoint &gt;= #{parameterModel.startTime} and TimePoint &lt; #{parameterModel.endTime} and
+        Area in
+        <foreach item="area" collection="parameterModel.areas" open="(" close=")" separator=",">
+          #{area}
+        </foreach>
+      </otherwise>
+    </choose>
+    ) t
+    group by Area
+    ${tailSql}
+  </select>
+  <select id="getAvgDateByArea" resultType="java.util.LinkedHashMap">
+    select
+      TimePoint as TimePoint,
+      <include refid="avgSpecies"/>
+    from (
+            select
+              <include refid="allColumn"/>
+            from ${tableName}
+            where
+            TimePoint &gt;= #{startTime} and TimePoint &lt; #{endTime}
+            and area = #{area}
+            <if test="repeatCodes!=null and repeatCodes.size()!=0">
+              and StationCode not in
+              <foreach item="stationCode" collection="repeatCodes" open="(" close=")" separator=",">
+                #{stationCode}
+              </foreach>
+            </if>
+            union all
+            select
+              <include refid="allColumn"/>
+            from pm_25_JJJ
+            where area = #{area}
+            and TimePoint &gt;= #{startTime} and TimePoint &lt; #{endTime}
+            <if test="repeatCodes!=null and repeatCodes.size()!=0">
+              and StationCode not in
+              <foreach item="stationCode" collection="repeatCodes" open="(" close=")" separator=",">
+                #{stationCode}
+              </foreach>
+            </if>
+            <if test="repeatCodes!=null and repeatCodes.size()!=0">
+              union all
+              select
+                <include refid="commonSelf1"/>
+              from (
+                select
+                  <include refid="allColumn"/>
+                from ${tableName}
+                where area = #{area}
+                and TimePoint &gt;= #{startTime} and TimePoint &lt; #{endTime}
+                and StationCode in
+                <foreach item="stationCode" collection="repeatCodes" open="(" close=")" separator=",">
+                  #{stationCode}
+                </foreach>
+                union all
+                select
+                <include refid="allColumn"/>
+                from pm_25_JJJ
+                where area = #{area}
+                and TimePoint &gt;= #{startTime} and TimePoint &lt; #{endTime}
+                and StationCode in
+                <foreach item="stationCode" collection="repeatCodes" open="(" close=")" separator=",">
+                  #{stationCode}
+                </foreach>
+              ) tem group by StationCode
+            </if>
+    ) t GROUP BY DATE(TimePoint)
+  </select>
+
+  <select id="getMax_minDataByArea" resultType="java.util.LinkedHashMap">
+
+    select MAX(AQI) as MAX,MIN(AQI) as MIN,
+    TimePoint as dt
+    from (
+      select
+        <include refid="allColumn"/>
+      from ${tableName}
+      where Area=#{area}
+      and TimePoint &gt;= #{startTime} and TimePoint &lt; #{endTime}
+      <if test="repeatCodes!=null and repeatCodes.size()!=0">
+        and StationCode not in
+        <foreach item="stationCode" collection="repeatCodes" open="(" close=")" separator=",">
+          #{stationCode}
+        </foreach>
+      </if>
+      union all
+      select
+        <include refid="allColumn"/>
+      from pm_25_JJJ
+      where Area=#{area}
+      and TimePoint &gt;= #{startTime} and TimePoint &lt; #{endTime}
+      <if test="repeatCodes!=null and repeatCodes.size()!=0">
+        and StationCode not in
+        <foreach item="stationCode" collection="repeatCodes" open="(" close=")" separator=",">
+          #{stationCode}
+        </foreach>
+      </if>
+      <if test="repeatCodes!=null and repeatCodes.size()!=0">
+        union all
+        select
+        <include refid="commonSelf1"/>
+        from (
+        select
+          <include refid="allColumn"/>
+        from ${tableName}
+        where Area=#{area}
+        and TimePoint &gt;= #{startTime} and TimePoint &lt; #{endTime}
+        <if test="repeatCodes!=null and repeatCodes.size()!=0">
+          and StationCode not in
+          <foreach item="stationCode" collection="repeatCodes" open="(" close=")" separator=",">
+            #{stationCode}
+          </foreach>
+        </if>
+        union all
+        select
+          <include refid="allColumn"/>
+        from pm_25_JJJ
+        where Area=#{area}
+        and TimePoint &gt;= #{startTime} and TimePoint &lt; #{endTime}
+        and StationCode  in
+        <foreach item="stationCode" collection="repeatCodes" open="(" close=")" separator=",">
+          #{stationCode}
+        </foreach>
+        ) tem group by StationCode
+      </if>
+    ) t  GROUP BY DATE(TimePoint)
+  </select>
+
+  <select id="getMaxTimePoint" resultType="String">
+      select DATE_FORMAT(min(TimePoint),"%Y-%m-%d %H:%i:%s") from (select MAX(TimePoint) as TimePoint from pm_25_JJJ union all select MAX(TimePoint) as TimePoint from PM_25) temp
+  </select>
+
 </mapper>

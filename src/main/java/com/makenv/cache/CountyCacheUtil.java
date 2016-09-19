@@ -5,6 +5,7 @@ import com.makenv.vo.CountyVo;
 
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * Created by Administrator on 2016/8/12.
@@ -45,4 +46,8 @@ public class CountyCacheUtil {
         return this.countyList.stream().filter(county->(county!= null && county.getRegionId()!=null)?county.getRegionId().equals(regionCode):false).findFirst().orElse(null);
     }
 
+    public List getCountyListByCity(String specialCityId) {
+
+        return this.countyList.stream().filter(county->(county!= null && county.getRegionId()!=null)?county.getRegionId().startsWith(specialCityId):false).collect(Collectors.toList());
+    }
 }

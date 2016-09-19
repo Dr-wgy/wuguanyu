@@ -1,5 +1,7 @@
 package com.makenv.vo;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 /**
  * Created by wgy on 2016/8/8.
  */
@@ -44,7 +46,7 @@ public class CityVo {
     public void setLat(String lat) {
         this.lat = lat;
     }
-
+    @JsonIgnore
     private Integer cityId;
 
     private String regionName;

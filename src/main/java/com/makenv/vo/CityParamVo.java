@@ -1,5 +1,8 @@
 package com.makenv.vo;
 
+import com.makenv.util.DateUtils;
+import org.springframework.util.StringUtils;
+
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
@@ -21,47 +24,7 @@ public class CityParamVo {
 
     public String getTableName() {
 
-        if(isTimePointOrTimeInterval) {
-
-            LocalDateTime now = LocalDateTime.parse(dateTime, DateTimeFormatter.ofPattern("yyyy-MM-dd_HH"));
-
-            dateTime = now.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:00:00"));
-
-            if(now.getYear() <= 2013){
-
-
-                return "Sum_All_PM25_copy";
-            }
-            else {
-
-                return "PM_25";
-            }
-
-        }
-
-        else {
-
-            LocalDateTime after = LocalDateTime.parse(afterTime, DateTimeFormatter.ofPattern("yyyy-MM-dd_HH"));
-
-            afterTime = after.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:00:00"));
-
-            LocalDateTime before = LocalDateTime.parse(beforeTime, DateTimeFormatter.ofPattern("yyyy-MM-dd_HH"));
-
-            beforeTime = before.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:00:00"));
-
-            if(after.getYear() <= 2013){
-
-
-                return "Sum_All_PM25_copy";
-            }
-            else {
-
-
-                return "PM_25";
-            }
-        }
-
-
+        return tableName;
 
     }
 
@@ -73,11 +36,11 @@ public class CityParamVo {
 
     public String getArea() {
 
-        if(area.equals("regionCode")){
+        if("area".equals(area)){
 
             return "Area";
         }
-        else if(area.equals("stationCode")) {
+        else if("station".equals(area)) {
 
             return "StationCode";
 
@@ -91,19 +54,22 @@ public class CityParamVo {
         this.area = area;
     }
 
-    public boolean isTimePointOrTimeInterval() {
+    public boolean getIsTimePointOrTimeInterval() {
         return isTimePointOrTimeInterval;
     }
 
     public void setIsTimePointOrTimeInterval(boolean isTimePointOrTimeInterval) {
+
         this.isTimePointOrTimeInterval = isTimePointOrTimeInterval;
     }
 
     public String getDateTime() {
+
         return dateTime;
     }
 
     public void setDateTime(String dateTime) {
+
         this.dateTime = dateTime;
     }
 

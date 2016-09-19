@@ -5,11 +5,16 @@ import com.makenv.config.SpeciesConfig;
 import com.makenv.domain.City;
 import com.makenv.service.StationDetailService;
 import com.makenv.service.StationService;
+import com.makenv.service.impl.StationDetailServiceImpl;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationContext;
+import org.springframework.http.HttpRequest;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.context.support.WebApplicationContextUtils;
 
+import javax.servlet.http.HttpServletRequest;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.HashMap;
@@ -31,7 +36,6 @@ public class TestController extends BaseController {
     @Autowired
     private StationDetailService stationDetailService;
 
-
     @Autowired
     private SpeciesConfig speciesConfig;
 
@@ -40,7 +44,15 @@ public class TestController extends BaseController {
 
     @RequestMapping("/test")
     @ResponseBody
-    public Map test(@RequestBody List<Map<String,Object>> obj){
+    public Map test(HttpServletRequest request){
+
+
+        ApplicationContext applicationContext = WebApplicationContextUtils.getWebApplicationContext(request.getSession().getServletContext());
+
+        String beanDefinitionName[] =applicationContext.getBeanDefinitionNames();
+
+        Object obj = applicationContext.getBean("stationDetailServiceImpl");
+        System.out.println(obj);
 
          return new HashMap();
     }

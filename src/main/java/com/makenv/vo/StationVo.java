@@ -60,6 +60,16 @@ public class StationVo {
     private String regionId;
     private String cityName;
 
+    public String getAdCode() {
+        return adCode;
+    }
+
+    public void setAdCode(String adCode) {
+        this.adCode = adCode;
+    }
+
+    private String adCode;
+
     public Integer getCityId() {
         return cityId;
     }
@@ -69,4 +79,18 @@ public class StationVo {
     }
 
     private Integer cityId;
+
+    @Override
+    public String toString() {
+        return "StationVo{" +
+                "stationId='" + stationId + '\'' +
+                ", stationName='" + stationName + '\'' +
+                ", lat=" + lat +
+                ", lon=" + lon +
+                ", regionId='" + regionId + '\'' +
+                ", cityName='" + cityName + '\'' +
+                ", adCode='" + adCode + '\'' +
+                ", cityId=" + cityId +
+                '}';
+    }
 }

@@ -1,5 +1,6 @@
 package com.makenv.service.impl;
 
+import com.makenv.cache.RedisCache;
 import com.makenv.config.TaskExecutorConfig;
 import com.makenv.service.AsyncService;
 import com.makenv.service.ScheduledTaskService;
@@ -12,6 +13,7 @@ import com.sun.tools.doclets.formats.html.SourceToHTMLConverter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.interceptor.CacheInterceptor;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -37,7 +39,6 @@ import java.util.concurrent.TimeUnit;
  @Service
  public class ScheduledTaskServiceImpl implements ScheduledTaskService {
 
-
     private final static Logger logger = LoggerFactory.getLogger(ScheduledTaskServiceImpl.class);
 
 
@@ -47,6 +48,10 @@ import java.util.concurrent.TimeUnit;
     @Resource(name="redisTemplate")
     private RedisTemplate redisTemplate;
 
+
+    @Autowired
+    private RedisCache redisCache;
+
     @Resource
     private StationDetailService stationDetailService;
 
@@ -55,15 +60,17 @@ import java.util.concurrent.TimeUnit;
 
 
     @Override
-    @Scheduled(fixedRate = 50000)
+    /*@Scheduled(fixedRate = 50000)*/
     public void reportCurrentTime() {
+
+
 
         //检查是否有都出来的id
 
     }
 
-    @Override
-    @Scheduled(cron = "0 0 0 ? * *")
+/*    @Override
+    @Scheduled(cron = "0 0 0 ? * *")*/
     public void fixTimeExecution() {
 
         LocalDateTime endTime = LocalDateTime.of(LocalDateTime.now().toLocalDate(), LocalTime.of(0, 0, 0));

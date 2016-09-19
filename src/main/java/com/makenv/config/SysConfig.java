@@ -16,6 +16,16 @@ public class SysConfig {
   private HashMap<String,String> yearTable;
   private Integer startYear;
 
+  public String getStartTime() {
+    return startTime;
+  }
+
+  public void setStartTime(String startTime) {
+    this.startTime = startTime;
+  }
+
+  private String startTime;
+
   public Boolean getIsCache() {
     return isCache;
   }

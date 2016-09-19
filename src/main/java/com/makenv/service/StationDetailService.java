@@ -25,11 +25,7 @@ public interface StationDetailService {
 
     Map<String,Object> getLastTimeSpanResultData(String regionCode, Integer timeSpan, String unit);
 
-    Map<String,Object> getLast24ResultData(String regionCode);
-
-    Map<String,Object> getYearResultByVirtualSite(Integer year, String regionCode);
-
-    Map<String,Object> getLast24ResultDataByVirtualSite(String regionCode);
+    Map<String,Object> getLast24ResultData(String area, String areaId);
 
     Map<String,Object> getAvgMonthResultByRegionCode(Integer year, Integer month, String regionCode);
 
@@ -37,12 +33,25 @@ public interface StationDetailService {
 
     List<Map<String,Object>> getRankMonResultRegionCode(List<String> regionCode, LocalDateTime year, List<String> areas, String tUnit);
 
-    List<RankAreaData> getRankResultDataByArea(StationDetailCondition parameter, LocalDateTime startTime, LocalDateTime endTime);
+    List getRankResultDataByArea(StationDetailCondition parameter, LocalDateTime startTime, LocalDateTime endTime);
 
     List getRankResultDataByRes(Integer year, Integer month, Integer date, Set<String> regionCode);
 
     Map getRankResultDataByRe(String tableName,String tunit,LocalDateTime startTime,LocalDateTime endTime,String regionCode);
 
-    List getRankResultDataByArea(StationDetailCondition stationDetailCondition);
+    Map getRankResultDataByArea(StationDetailCondition stationDetailCondition);
 
+    Map<String,Object> getAvgDateResultByRegionCode(Integer year, Integer month, Integer date, String regionCode);
+
+    Map<String,Object> getAvgResultByAreaOrStation(LocalDateTime startDateTime, LocalDateTime startDateTime1, String area, String areaId, String unit);
+
+    List getQualityData(Integer year, Integer month, String city, String timeSpan, String timeUnit);
+
+    Map getHevData(Integer year, Integer month, String city, String timeSpan, String timeUnit);
+
+    Map<String,Object> getAllMonResult(String city);
+
+    Map getRankALLResultDataByArea();
+
+    Map<String,Object> getALLDate(String city, Integer year, Integer month);
 }

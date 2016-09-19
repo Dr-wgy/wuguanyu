@@ -4,10 +4,7 @@ import com.makenv.domain.Station;
 import com.makenv.vo.StationVo;
 
 import javax.validation.constraints.Null;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -67,7 +64,7 @@ public class StationCacheUtil {
 
         if(this.stationList !=null){
 
-            return stationList.stream().filter(station -> (station != null && station.getCityId() != null)?station.getCityId().equals(cityId):false).collect(Collectors.toList());
+            return stationList.stream().filter(station -> (station != null && station.getCityId() != null) ? station.getCityId().equals(cityId) : false).collect(Collectors.toList());
         }
 
         return null;
@@ -82,49 +79,33 @@ public class StationCacheUtil {
 
         if(code != null && code.length() >= 2) {
 
-            return stationList.stream().filter(station -> (station != null && station.getRegionId() != null)?station.getRegionId().startsWith(code):false).distinct().collect(Collectors.toList());
+            return stationList.stream().filter(station -> (station != null && (station.getRegionId() != null||station.getAdCode() != null)) ? station.getRegionId().startsWith(code) : false).distinct().collect(Collectors.toList());
 
         }
 
         return null;
     }
 
-    public StationVo getStation(String stationCode){
+    public List<StationVo> getStationListByAdCode(String adCode){
 
-        return this.stationList.stream().filter(station -> (station != null && station.getStationId() != null)?station.getStationId().equals(stationCode):false).findFirst().orElse(null);
+        if(adCode != null && adCode.length() >= 2) {
 
+            return stationList.stream().filter(station -> (station != null && station.getAdCode() != null) ? station.getAdCode().startsWith(adCode) : false).distinct().collect(Collectors.toList());
 
+        }
+
+        return null;
     }
 
-    public static void main(String[] args) {
+    public List<String> getStationIdList(String code) {
 
-        List<Map<String,Object>> list = new ArrayList<Map<String,Object>>();
+        return getStationListByCityCode(code).stream().map(StationVo::getStationId).collect(Collectors.toList());
+    }
 
-        Map map = new HashMap();
+    public StationVo getStation(String cityCode){
 
-        map.put("regionId",110100);
+        return this.stationList.stream().filter(station -> (station != null && station.getStationId() != null) ? station.getStationId().equals(cityCode) : false).findFirst().orElse(null);
 
-        map = new HashMap();
-
-        list.add(map);
-
-        map.put("regionId", 120100);
-
-        map = new HashMap();
-
-        list.add(map);
-
-        map.put("regionId", 130100);
-
-        map.put("regionName", "haha");
-
-        list.add(map);
-
-       // StationCacheUtil.newInstance().setStationList(list);
-
-        List list1 = StationCacheUtil.newInstance().getStationListByCityCode("130100");
-
-        System.out.println(list1);
 
     }
 }

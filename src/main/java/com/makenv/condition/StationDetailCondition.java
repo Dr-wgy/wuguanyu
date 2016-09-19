@@ -4,6 +4,8 @@ import com.makenv.cache.CityCacheUtil;
 import com.makenv.vo.CityVo;
 
 import java.io.Serializable;
+import java.time.LocalDateTime;
+import java.time.temporal.ChronoField;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -15,14 +17,26 @@ public class StationDetailCondition implements Serializable {
     private static final long serialVersionUID = -8593575815017421448L;
 
     public Integer getYear() {
+
+        if(year == null) {
+
+            year = LocalDateTime.now().getYear();
+        }
         return year;
     }
 
     public void setYear(Integer year) {
+
         this.year = year;
     }
 
     public Integer getMonth() {
+
+        if(month == null) {
+
+            month = LocalDateTime.now().get(ChronoField.MONTH_OF_YEAR);
+
+        }
         return month;
     }
 
@@ -46,6 +60,11 @@ public class StationDetailCondition implements Serializable {
                     .map(CityVo::getRegionName).limit(74)
                     .collect(Collectors.toList());
 
+            this.areas = areas.stream().sorted((item1, item2) -> {
+
+                return item1.compareTo(item2);
+
+            }).collect(Collectors.toList());
         }
         return areas;
     }
@@ -93,16 +112,6 @@ public class StationDetailCondition implements Serializable {
     }
 
     private transient Integer timeSpan = 12;
-
-    public String getRedisKey() {
-        return redisKey;
-    }
-
-    public void setRedisKey(String redisKey) {
-        this.redisKey = redisKey;
-    }
-
-    private String redisKey;
 
     public Integer getHour() {
         return hour;

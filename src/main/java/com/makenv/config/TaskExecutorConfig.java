@@ -21,7 +21,7 @@ public class TaskExecutorConfig{
 
         ThreadPoolTaskExecutor taskExecutor = new ThreadPoolTaskExecutor();
         //线程池维护线程的最少数量
-        taskExecutor.setCorePoolSize(5);
+        taskExecutor.setCorePoolSize(8);
         //线程维护线程的最大数量
         taskExecutor.setMaxPoolSize(10);
         //线程池所使用的缓冲队列容量

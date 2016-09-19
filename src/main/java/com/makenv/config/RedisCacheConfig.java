@@ -32,7 +32,7 @@ import java.util.ResourceBundle;
  * 所有的方法中加@bean所有的形参都被spring所管理
  */
 @Configuration
-@EnableCaching
+@EnableCaching(order = 0)
 @EnableConfigurationProperties
 @PropertySource("classpath:redis.properties")
 public class RedisCacheConfig extends CachingConfigurerSupport {
@@ -95,6 +95,7 @@ public class RedisCacheConfig extends CachingConfigurerSupport {
         redisConnectionFactory.setPassword(redisPassword);
         redisConnectionFactory.setDatabase(dbIndex);
         redisConnectionFactory.setPoolConfig(jedisPoolConfig);
+        redisConnectionFactory.setTimeout(5000);
         return redisConnectionFactory;
     }
 

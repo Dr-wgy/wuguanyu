@@ -49,9 +49,11 @@ public class RegionController extends BaseController {
     }
 
     @RequestMapping(value = "api/dateInRe", method = RequestMethod.GET)
-    public Map<String,Object> getDayValue(@RequestParam("date") Integer year,@RequestParam("month") Integer month,@RequestParam("date") Integer date, @RequestParam("regionCode") String regionCode) {
+    public Map<String,Object> getDayValue(@RequestParam("year") Integer year,@RequestParam("month") Integer month,@RequestParam("date") Integer date, @RequestParam("regionCode") String regionCode) {
 
         Map<String,Object> map = new HashMap<String,Object>();
+
+        Map<String,Object> resultMap = stationDetailService.getAvgDateResultByRegionCode(year, month, date, regionCode);
 
         map.put(RESULT,SUCCESS);
 
@@ -61,8 +63,8 @@ public class RegionController extends BaseController {
     }
 
 
-    @RequestMapping(value = "api/avgYearInRe", method = RequestMethod.GET)
-    public Map<String,Object> getYearResult(@RequestParam("year") Integer year, @RequestParam("regionCode") String regionCode) {
+    @RequestMapping(value = "api/year", method = RequestMethod.GET)
+    public Map<String,Object> getYearResult(@RequestParam("year") Integer year, @RequestParam("city") String regionCode) {
 
         Map<String,Object> map = new HashMap<String,Object>();
 
@@ -74,21 +76,6 @@ public class RegionController extends BaseController {
 
         return map;
     }
-
-    @RequestMapping(value="api/last24InRe",method = RequestMethod.GET)
-    public Map<String,Object> getLast24Result(@RequestParam("regionCode") String regionCode){
-
-        Map<String,Object> map = new HashMap<String,Object>();
-
-        Map<String,Object> resultData = stationDetailService.getLast24ResultData(regionCode);
-
-        map.put(RESULT,SUCCESS);
-
-        map.put(DATA,resultData);
-
-        return map;
-    }
-
 
     @RequestMapping(value="api/lastInRe",method = RequestMethod.GET)
     public Map<String,Object> getLastTimeSpanResultData(@RequestParam(value = "unit",defaultValue = "h")String unit,String regionCode,Integer timeSpan){
@@ -104,14 +91,32 @@ public class RegionController extends BaseController {
         return map;
     }
 
-    @RequestMapping(value="api/rank",method = RequestMethod.GET)
-    public Map<String,Object> getRankResult(Integer year,Integer month){
+    @RequestMapping(value={"api/rank"},method = RequestMethod.GET)
+    public Map<String,Object> getRankResult(StationDetailCondition stationDetailCondition){
 
         Map<String,Object> map = new HashMap<String,Object>();
 
+        Map resultDataByArea= stationDetailService.getRankResultDataByArea(stationDetailCondition);
+
         map.put(RESULT,SUCCESS);
 
-        return null;
+        map.put(DATA,resultDataByArea);
+
+        return map;
+    }
+
+    @RequestMapping(value="api/rank-all",method = RequestMethod.GET)
+    public Map<String,Object> getRankALLResult(){
+
+        Map<String,Object> map = new HashMap<String,Object>();
+
+        Map resultDataByArea= stationDetailService.getRankALLResultDataByArea();
+
+        map.put(RESULT,SUCCESS);
+
+        map.put(DATA,resultDataByArea);
+
+        return map;
     }
 
    @RequestMapping(value="api/rankLastByArea",method=RequestMethod.GET)
@@ -119,11 +124,11 @@ public class RegionController extends BaseController {
 
        Map<String,Object> map = new HashMap<String,Object>();
 
-       List list = stationDetailService.getRankResultDataByArea(stationDetailCondition);
+       Map resultDataByArea = stationDetailService.getRankResultDataByArea(stationDetailCondition);
 
        map.put(RESULT,SUCCESS);
 
-       map.put(DATA,list);
+       map.put(DATA,resultDataByArea);
 
        return map;
    }
@@ -183,6 +188,20 @@ public class RegionController extends BaseController {
         map.put(RESULT,SUCCESS);
 
         map.put(DATA,list);
+
+        return map;
+    }
+
+    @RequestMapping(value = "api/baseYear", method = RequestMethod.GET)
+    public Map<String,Object> getBaseYearResult(@RequestParam("area") String area,@RequestParam("year") Integer year){
+
+        Map<String,Object> map = new HashMap<String,Object>();
+
+        Map<String,Object> map1 =  stationDetailService.getAvgYearResultByRegionCode(year, area);
+
+        map.put(RESULT,SUCCESS);
+
+        map.put(DATA, map1);
 
         return map;
     }

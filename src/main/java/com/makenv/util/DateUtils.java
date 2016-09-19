@@ -4,9 +4,13 @@ import com.makenv.condition.StationDetailCondition;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.sql.Timestamp;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.time.Instant;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
@@ -229,6 +233,16 @@ public class DateUtils {
 
     }
 
+    public static String dateFormat(LocalDate dateTime,String formatPattern){
+
+        String dateTimeString = "";
+
+        dateTimeString = DateTimeFormatter.ofPattern(formatPattern).format(dateTime);
+
+        return dateTimeString;
+
+    }
+
     public static Map initCondition(Integer year,Integer month,Integer date,String tunit,Integer timeSpan){
 
         Map map = new HashMap();
@@ -301,5 +315,33 @@ public class DateUtils {
               stationDetailCondition.getTunit(),stationDetailCondition.getTimeSpan());
     }
 
+    public static LocalDateTime convertDateToLocaleDateTime(Date date){
+
+        if(date != null) {
+
+            return LocalDateTime.ofInstant(Instant.ofEpochMilli(date.getTime()), ZoneId.systemDefault());
+
+        }
+
+        return  null;
+
+    }
+
+    public static LocalDateTime convertStringToLocalDateTime(String pm_25_jjj_startTime, String pattern) {
+
+        return LocalDateTime.parse(pm_25_jjj_startTime,DateTimeFormatter.ofPattern(pattern));
+
+    }
+
+    public static LocalDateTime convertTimeStampToLocalDateTime(Timestamp timestamp) {
+
+        Instant instant = Instant.ofEpochMilli(timestamp.getTime());
+
+        return LocalDateTime.ofInstant(instant, ZoneId.systemDefault());
+    }
+
+    public static LocalDate convertStringToLocalDate(String timePoint, String pattern) {
+        return LocalDate.parse(timePoint, DateTimeFormatter.ofPattern(pattern));
+    }
 }
 

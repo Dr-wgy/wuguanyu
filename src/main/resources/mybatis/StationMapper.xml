@@ -17,6 +17,7 @@
     <result column="lon" jdbcType="DOUBLE" property="lon" />
     <result column="regionId" jdbcType="VARCHAR" property="regionId" />
     <result column="cityName" jdbcType="VARCHAR" property="cityName" />
+    <result column="adCode" jdbcType="VARCHAR" property="adCode"/>
   </resultMap>
   <sql id="Base_Column_List">
     stationId, stationName, cityId, latitude, longitude, cityName
@@ -121,7 +122,8 @@
       s.cityId,
       s.longitude AS lon,
       c.regionId AS regionId,
-      s.cityName
+      s.cityName,
+      s.adCode
     FROM pm_station s LEFT JOIN pm_city c USING (cityId) where c.regionId is not null
   </select>
 

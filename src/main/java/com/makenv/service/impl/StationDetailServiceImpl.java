@@ -1,44 +1,48 @@
 package com.makenv.service.impl;
 
 import com.makenv.cache.CityCacheUtil;
+import com.makenv.cache.CountyCacheUtil;
 import com.makenv.cache.RedisCache;
 import com.makenv.cache.StationCacheUtil;
 import com.makenv.condition.StationDetailCondition;
 import com.makenv.config.FigConfig;
 import com.makenv.config.SpeciesConfig;
-import com.makenv.constant.Contants;
+import com.makenv.config.SysConfig;
+import com.makenv.constant.Constants;
+import com.makenv.dao.StationDetailMultipleDao;
+import com.makenv.domain.City;
 import com.makenv.domain.StationDetail;
 import com.makenv.enums.UnitLengthEnum;
 import com.makenv.mapper.StationDetailMapper;
+import com.makenv.service.AsyncService;
 import com.makenv.service.StationDetailService;
 import com.makenv.task.MonthTask;
 import com.makenv.task.SpecialDealer;
 import com.makenv.util.DateUtils;
 import com.makenv.util.RegionUtils;
 import com.makenv.vo.*;
+import org.hibernate.type.StringClobType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.Cacheable;
-import org.springframework.dao.DataAccessException;
-import org.springframework.data.redis.connection.RedisConnection;
-import org.springframework.data.redis.core.RedisCallback;
 import org.springframework.data.redis.core.RedisTemplate;
-import org.springframework.data.redis.serializer.RedisSerializer;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
 import javax.annotation.Resource;
 import java.math.BigDecimal;
+import java.sql.Timestamp;
+import java.time.Instant;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
 /**
@@ -47,8 +51,10 @@ import java.util.stream.Collectors;
 @Service
 public class StationDetailServiceImpl implements StationDetailService {
 
-
     private final static Logger logger = LoggerFactory.getLogger(StationDetailServiceImpl.class);
+
+    @Autowired
+    private StationDetailMultipleDao stationDetailMultipleDao;
 
     @Autowired
     private StationDetailMapper stationDetailMapper;
@@ -62,11 +68,15 @@ public class StationDetailServiceImpl implements StationDetailService {
     @Autowired
     private FigConfig figConfig;
 
+
+    @Autowired
+    private SysConfig sysConfig;
+
     @Autowired
     private SpeciesConfig speciesConfig;
 
     @Autowired
-    private AsyncServiceImpl asyncServiceImpl;
+    private AsyncService asyncService;
 
     @Override
     public List<StationDetail> selectStationDetailByTimeInterval(String startTime, String endTime) {
@@ -135,7 +145,7 @@ public class StationDetailServiceImpl implements StationDetailService {
         return null;
     }
 
-    @Cacheable(key = "#year+#regionCode",value = "stationDetail")
+    @Cacheable(key = "#year+#regionCode",value = "stationDetail",condition = "#year<T(java.time.LocalDateTime).now().getYear()")
     public Map<String, Object> getAvgYearResultByRegionCode(Integer year, String regionCode) {
 
         regionCode = RegionUtils.convertRegionCode(regionCode);
@@ -156,25 +166,59 @@ public class StationDetailServiceImpl implements StationDetailService {
 
         map.put("year", year);
 
-        List<StationVo> list = StationCacheUtil.newInstance().getStationListByCityCode(regionCode);
+        List<String> stationCodes = null;
 
-        map.put("stationList",  list.stream().sorted((station1, station2) -> {
+        List repeatCodes = null;
 
-            return station1.getStationId().compareTo(station2.getStationId());
+        if(regionCode.length()==4 || regionCode.length()==2) {
 
-        }).collect(Collectors.toList()));
+            stationCodes = StationCacheUtil.newInstance().getStationListByCityCode(regionCode).stream().map(StationVo::getStationId).collect(Collectors.toList());
+
+        }
+        else if(regionCode.length()==6) {
+
+
+            stationCodes = StationCacheUtil.newInstance().getStationListByAdCode(regionCode).stream().map(StationVo::getStationId).collect(Collectors.toList());
+
+        }
+
+
+        LocalDateTime pm_25_jjj_startTime = DateUtils.convertStringToLocalDateTime(sysConfig.getStartTime(), "yyyy-MM-dd HH:mm:ss");
+
+        if(pm_25_jjj_startTime.getYear() <= year) {
+
+            repeatCodes = stationDetailMapper.getRepeatStationCodes();
+        }
+
+
+        if(stationCodes != null && stationCodes.size()!= 0 && repeatCodes!= null && repeatCodes.size()!= 0 ) {
+
+
+            List copyStaionCodes =  new ArrayList<>();
+
+            copyStaionCodes.addAll(stationCodes);
+
+            stationCodes.removeAll(repeatCodes);
+
+            repeatCodes.retainAll(copyStaionCodes);
+
+        }
+
+        map.put("stationList",stationCodes);
+
+        map.put("repeatCodes",repeatCodes);
 
         if(((List)map.get("stationList")).size() == 0){
 
             return null;
         }
 
-        resultList =  stationDetailMapper.selectAvgYearResultByStationCode(map);
-
         //省级平均
         switch (regionCode.length()) {
 
             case 2:
+
+                resultList =  stationDetailMapper.selectAvgYearResultByProvince(map);
 
                 resultList.forEach(item -> {
 
@@ -192,24 +236,14 @@ public class StationDetailServiceImpl implements StationDetailService {
 
                 break;
 
-            case 4:
-                //是平均加超标日期
-                List<Map<String,Object>> overStandardList = stationDetailMapper.selectOverStandardGroupByDate(map);
+/*            case 4:
 
-                overStandardList.forEach(item -> {
 
-                    item.forEach((key, value) -> {
+                break;
 
-                        Map map1 = new HashMap<String, Object>();
+            case 6:
 
-                        map1.put("days", value);
-
-                        item.put(key, map1);
-
-                    });
-                });
-
-                Map<String,Object> overStandardMap = overStandardList.get(0);
+                resultList =  stationDetailMapper.selectAvgYearResultByCity(map);
 
                 resultList.forEach(item -> {
 
@@ -219,27 +253,64 @@ public class StationDetailServiceImpl implements StationDetailService {
 
                         map1.put("val", value);
 
-                        if(overStandardMap.containsKey(key)) {
-
-                            map1.put("days", ((Map)overStandardMap.get(key)).get("days"));
-
-                        }
-
-                        item.put(key, map1);
+                        item.put(key,map1);
 
                     });
 
                 });
 
-                break;
-
-            case 6:
-
-
-                break;
+                break;*/
 
 
             default:
+
+                resultList =  stationDetailMapper.selectAvgYearResultByCity(map);
+
+                //是平均加超标日期
+                List<Map<String,Object>> overStandardList = stationDetailMapper.selectOverStandardGroupByDate(map);
+
+                overStandardList.forEach(item -> {
+
+                    if(item != null) {
+
+                        item.forEach((key, value) -> {
+
+                            Map map1 = new HashMap<String, Object>();
+
+                            map1.put("days", value);
+
+                            item.put(key, map1);
+
+                        });
+                    }
+
+                });
+
+                Map<String,Object> overStandardMap = overStandardList.get(0);
+
+                resultList.forEach(item -> {
+
+                    if(item != null) {
+
+                        item.forEach((key, value) -> {
+
+                            Map map1 = new HashMap<String, Object>();
+
+                            map1.put("val", value);
+
+                            if(overStandardMap.containsKey(key)) {
+
+                                map1.put("days", ((Map)overStandardMap.get(key)).get("days"));
+
+                            }
+
+                            item.put(key, map1);
+
+                        });
+                    }
+                });
+
+
                 break;
 
         }
@@ -339,11 +410,29 @@ public class StationDetailServiceImpl implements StationDetailService {
     }
 
     @Override
-    public Map<String, Object> getLast24ResultData(String regionCode) {
+    public Map<String, Object> getLast24ResultData(String area, String areaId) {
 
-        regionCode = RegionUtils.convertRegionCode(regionCode);
+        List<StationVo> list = null;
 
-        List<StationVo> list = StationCacheUtil.newInstance().getStationListByCityCode(regionCode);
+        if("city".equals(area)){
+
+            areaId = RegionUtils.convertRegionCode(areaId);
+
+            list = StationCacheUtil.newInstance().getStationListByCityCode(areaId);
+
+        }
+        else if("station".equals(area)){
+
+            list = new ArrayList<StationVo>();
+
+            StationVo station = new StationVo();
+
+            station.setStationId(areaId);
+
+            list.add(station);
+
+        }
+
 
         LocalDateTime endTime = LocalDateTime.now();
 
@@ -357,7 +446,9 @@ public class StationDetailServiceImpl implements StationDetailService {
 
         map.put("endTime",  DateUtils.dateFormat(endTime));
 
-        List<Map<String,Object>> station = stationDetailMapper.getLastTimeSpanResultData(map);
+        List<Map<String,Object>> JING_JIN_JI = stationDetailMultipleDao.getLastTimeSpanResultDataByJING_JIN_JI(map);
+
+        List<Map<String,Object>> station = JING_JIN_JI;
 
         Map<String,Object> resultMap = new HashMap<String,Object>();
 
@@ -390,20 +481,10 @@ public class StationDetailServiceImpl implements StationDetailService {
     }
 
     @Override
-    public Map<String, Object> getYearResultByVirtualSite(Integer year, String regionCode) {
-        return null;
-    }
-
-    @Override
-    public Map<String, Object> getLast24ResultDataByVirtualSite(String regionCode) {
-
-        return null;
-    }
-    @Override
     @Cacheable(key="#year+#month+#regionCode",value="stationDetail")
     public Map<String, Object> getAvgMonthResultByRegionCode(Integer year, Integer month, String regionCode) {
 
-        List<Map<String,Object>> resultList = null;
+        Map<String,Object> resultMap = null;
 
         regionCode = RegionUtils.convertRegionCode(regionCode);
 
@@ -422,7 +503,7 @@ public class StationDetailServiceImpl implements StationDetailService {
 
         else {
 
-            map.put("tableName","Sum_All_PM25_copy");
+            map.put("tableName", "Sum_All_PM25_copy");
         }
 
 
@@ -437,30 +518,30 @@ public class StationDetailServiceImpl implements StationDetailService {
             return null;
         }
 
-        resultList =  stationDetailMapper.getAvgMonthResultByStationCode(map);
-
         switch(regionCode.length()){
 
             case 2:
 
-                resultList.forEach(item -> {
+                resultMap =  stationDetailMapper.getAvgMonthResultByProvince(map);
 
-                    item.forEach((key, value) -> {
+                final Map<String, Object> finalResultMap = resultMap;
 
-                        Map map1 = new HashMap<String, Object>();
+                resultMap.forEach((key, value) -> {
 
-                        map1.put("val", value);
+                    Map map1 = new HashMap<String, Object>();
 
-                        item.put(key,map1);
+                    map1.put("val", value);
 
-                    });
+                    finalResultMap.put(key, map1);
 
                 });
 
 
                 break;
 
-            case 4:
+/*            case 4:
+
+                resultMap =  stationDetailMapper.getAvgMonthResultByCity(map);
 
                 //是平均加超标日期
                 List<Map<String,Object>> overStandardList = stationDetailMapper.selectOverStandardGroupByDate1(map);
@@ -480,9 +561,9 @@ public class StationDetailServiceImpl implements StationDetailService {
 
                 Map<String,Object> overStandardMap = overStandardList.get(0);
 
-                resultList.forEach(item -> {
+                final Map<String, Object> finalResultMap1 = resultMap;
 
-                    item.forEach((key, value) -> {
+                resultMap.forEach((key, value) -> {
 
                         Map map1 = new HashMap<String, Object>();
 
@@ -494,19 +575,56 @@ public class StationDetailServiceImpl implements StationDetailService {
 
                         }
 
-                        item.put(key, map1);
+                        finalResultMap1.put(key, map1);
 
                     });
-
-                });
 
                 break;
 
             case 6:
 
-                break;
+                break;*/
 
             default:
+
+
+                resultMap =  stationDetailMapper.getAvgMonthResultByCity(map);
+
+                //是平均加超标日期
+                List<Map<String,Object>> overStandardList = stationDetailMapper.selectOverStandardGroupByDate1(map);
+
+                overStandardList.forEach(item -> {
+
+                    item.forEach((key, value) -> {
+
+                        Map map1 = new HashMap<String, Object>();
+
+                        map1.put("days", value);
+
+                        item.put(key, map1);
+
+                    });
+                });
+
+                Map<String,Object> overStandardMap = overStandardList.get(0);
+
+                final Map<String, Object> finalResultMap1 = resultMap;
+
+                resultMap.forEach((key, value) -> {
+
+                    Map map1 = new HashMap<String, Object>();
+
+                    map1.put("val", value);
+
+                    if(overStandardMap.containsKey(key)) {
+
+                        map1.put("days", ((Map)overStandardMap.get(key)).get("days"));
+
+                    }
+
+                    finalResultMap1.put(key, map1);
+
+                });
 
                 break;
         }
@@ -517,15 +635,98 @@ public class StationDetailServiceImpl implements StationDetailService {
     @Override
     public Map getAllCurrentPlace(CityParamVo cityParamVo) {
 
-        List<Map<String,Object>> list = stationDetailMapper.getAllCurrentPlace(cityParamVo);
 
-        Map<String, Map<String,Object>> mapper;
+        if(cityParamVo.getIsTimePointOrTimeInterval()) {
+
+            if(cityParamVo.getDateTime() == null) {
+
+                //cityParamVo.setDateTime(LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:00:00")));
+
+                cityParamVo.setTableName(sysConfig.getYearTable().get("default"));
+
+            }
+
+            else  {
+
+                String dateTime = cityParamVo.getDateTime();
+
+                LocalDateTime  now = LocalDateTime.parse(cityParamVo.getDateTime(), DateTimeFormatter.ofPattern("yyyy-MM-dd_HH"));
+
+                dateTime = now.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:00:00"));
+
+                cityParamVo.setDateTime(dateTime);
+
+                cityParamVo.setTableName(sysConfig.getYearTable().containsKey(now.getYear())?
+
+                        (sysConfig.getYearTable().get(String.valueOf(now.getYear()))):
+
+                        sysConfig.getYearTable().get("default"));
+
+            }
+
+
+        }
+
+        else {
+
+            String afterTime = "";
+
+            String beforeTime = "";
+
+            LocalDateTime after = LocalDateTime.parse(cityParamVo.getAfterTime(), DateTimeFormatter.ofPattern("yyyy-MM-dd_HH"));
+
+            afterTime = after.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:00:00"));
+
+            LocalDateTime before = LocalDateTime.parse(cityParamVo.getBeforeTime(), DateTimeFormatter.ofPattern("yyyy-MM-dd_HH"));
+
+            beforeTime = before.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:00:00"));
+
+            cityParamVo.setTableName(sysConfig.getYearTable().containsKey(after.getYear()) ?
+
+                    (sysConfig.getYearTable().get(String.valueOf(after.getYear()))) :
+
+                    sysConfig.getYearTable().get("default"));
+        }
+
+        List<Map<String,Object>> JING_JIN_JI = stationDetailMultipleDao.getAllCurrentPlaceByJING_JIN_JI(cityParamVo);
+
+        List<Map<String,Object>> list = JING_JIN_JI;
+
+        Map<String, Object> mapper;
+
 
         mapper = list.stream().collect(
 
                 Collectors.toMap((map) -> {
 
-                    return CityCacheUtil.newInstance().getRegionCode((String) map.get(cityParamVo.getArea().toLowerCase()));
+                    String area = (String) map.get(cityParamVo.getArea().toLowerCase());
+
+                    if("area".equals(cityParamVo.getArea().toLowerCase())) {
+
+                        if(area != null && area.endsWith("市"))
+
+                            area = area.substring(0,area.lastIndexOf("市"));
+
+                        if((area = CityCacheUtil.newInstance().getRegionCode(area)) == null) {
+
+                            return area;
+
+                        }
+                    }
+                    else if("stationcode".equals(cityParamVo.getArea().toLowerCase())) {
+
+                            String stationCode = (String)map.get("area");
+
+                            if(StringUtils.isEmpty(stationCode)) {
+
+                                stationCode = UUID.randomUUID().toString();
+                            }
+
+                            return stationCode;
+
+                    }
+
+                    return area;
 
                 }, (map) -> {
                     Map map1 = new HashMap();
@@ -541,6 +742,11 @@ public class StationDetailServiceImpl implements StationDetailService {
                 }, (existingValue, newValue) -> existingValue)
         );
 
+        if(cityParamVo.getDateTime() == null) {
+
+            mapper.put("maxTimePonit",stationDetailMapper.getMaxTimePoint());
+        }
+
         return mapper;
     }
 
@@ -549,11 +755,13 @@ public class StationDetailServiceImpl implements StationDetailService {
         return null;
     }
 
-    public List<RankAreaData> getRankResultDataByArea(StationDetailCondition stationDetailCondition){
+    public Map getRankResultDataByArea(StationDetailCondition stationDetailCondition){
+
+        Map resultMap = new HashMap();
 
         List<Callable> taskList = new ArrayList();
 
-        List resultList = new ArrayList();
+        List<Map> resultList = new ArrayList();
 
         Map map = DateUtils.initCondition(stationDetailCondition);
 
@@ -587,7 +795,7 @@ public class StationDetailServiceImpl implements StationDetailService {
 
         }
 
-        List<Future> list = asyncServiceImpl.executeAsyncTask(taskList);
+       List<Future> list = asyncService.executeAsyncTask(taskList);
 
         for(Future<List> fs:list){
 
@@ -605,14 +813,950 @@ public class StationDetailServiceImpl implements StationDetailService {
             }
         }
 
+        if(resultList!=null && resultList.size()!=0) {
 
-        return resultList;
+            speciesConfig.getSpecies().forEach(spe -> {
+
+                if (!resultMap.containsKey(spe)) {
+
+                    resultMap.put(spe, new HashMap());
+                }
+
+                resultList.stream().forEach(map1 -> {
+
+                    Map speMap = (Map) resultMap.get(spe);
+
+
+                    Object cityCtyCode = map1.get("area");
+
+                    if (!speMap.containsKey(cityCtyCode)) {
+
+                        speMap.put(cityCtyCode, new ArrayList<>());
+                    }
+
+                    Map valueMap = new HashMap();
+
+                    valueMap.put("rank", map1.get("rank" + spe));
+
+                    valueMap.put("Time", map1.get("timePoint"));
+
+                    valueMap.put("value", map1.get("val_" + spe));
+
+                    ((List) speMap.get(cityCtyCode)).add(valueMap);
+
+                });
+            });
+        }
+        return resultMap;
+    }
+
+    @Override
+    public Map<String, Object> getAvgDateResultByRegionCode(Integer year, Integer month, Integer date, String regionCode) {
+        return null;
     }
 
 
-    public  List<RankAreaData> getRankResultDataByArea(StationDetailCondition parameter, LocalDateTime startTime, LocalDateTime endTime) {
+    @Override
+    @Cacheable(key = "#startDateTime.toString()+#endDateTime.toString()+#area+#areaId+#unit", condition = "!#unit.equals('h')",value = "stationDetail")
+    public Map<String, Object> getAvgResultByAreaOrStation(LocalDateTime startDateTime, LocalDateTime endDateTime, String area, String areaId, String unit) {
 
-        List list = null;
+        Map<String,Object> map = new HashMap();
+
+        List<String> stationIds = null;
+
+        if("station".equalsIgnoreCase(area)) {
+
+            stationIds = new ArrayList<>();
+
+            stationIds.add(areaId);
+
+        }
+        else {
+
+
+            areaId = RegionUtils.convertRegionCode(areaId);
+
+            if(areaId.length()==4) {
+
+                stationIds = StationCacheUtil.newInstance().getStationIdList(areaId);
+
+            }
+
+            else if(areaId.length()== 6) {
+
+                stationIds = StationCacheUtil.newInstance().getStationListByAdCode(areaId).stream().map(StationVo::getStationId).collect(Collectors.toList());
+
+            }
+
+            else {
+
+                throw new RuntimeException("parameter city is not corrent");
+
+            }
+
+        }
+
+        if(startDateTime.isAfter(endDateTime)) {
+
+            throw new RuntimeException("startDate is after endDate, please check your startDate and endDate");
+        }
+
+        List<Map> list = new ArrayList();
+
+        Integer startYear = startDateTime.getYear();
+
+        Integer endYear = endDateTime.getYear();
+
+        if(sysConfig.getYearTable().containsKey(endYear.toString()) && sysConfig.getYearTable().containsKey(startYear.toString())) {
+
+            String tableName = sysConfig.getYearTable().get(endYear.toString());
+
+            List<Map<String,Object>> list1 = stationDetailMapper.getAvgResultByAreaOrStation(startDateTime,endDateTime,area,stationIds,unit,tableName);
+
+            list.addAll(list1);
+
+        }else if(sysConfig.getYearTable().containsKey(startYear.toString()) && !sysConfig.getYearTable().containsKey(endYear.toString())) {
+
+            String tableName = sysConfig.getYearTable().get(startYear.toString());
+
+            String tableName1 = sysConfig.getYearTable().get("default");
+
+            List<Map<String,Object>> list1 = stationDetailMapper.getAvgResultByAreaOrStation(startDateTime, endDateTime, area, stationIds, unit, tableName);
+
+            List<Map<String,Object>> list2 = stationDetailMapper.getAvgResultByAreaOrStation(startDateTime,endDateTime,area,stationIds,unit,tableName1);
+
+            list.addAll(list1);
+
+            list.addAll(list2);
+        }
+        else {
+
+            String tableName1 = sysConfig.getYearTable().get("default");
+
+            List<Map<String,Object>> list1 = stationDetailMapper.getAvgResultByAreaOrStation(startDateTime, endDateTime, area, stationIds, unit, tableName1);
+
+            list.addAll(list1);
+
+        }
+
+        list.stream().forEach(stationDetailMap -> {
+
+
+            final Map<String, Object> stationDetailMap1 = stationDetailMap;
+
+            speciesConfig.getSpecies().forEach(spe -> {
+
+                Map map1 = null;
+
+                if (map.containsKey(spe)) {
+
+                    map1 = (Map) map.get(spe);
+
+                } else {
+
+                    map1 = new HashMap();
+                }
+
+
+                if (stationDetailMap1.get("timePoint") != null) {
+
+                    map1.put(stationDetailMap1.get("timePoint").toString(), stationDetailMap1.get(spe));
+
+                    map.put(spe, map1);
+
+                }
+
+            });
+
+        });
+
+        return map;
+    }
+
+    @Override
+    public List getQualityData(Integer year, Integer month, String city, String timeSpan, String timeUnit) {
+
+        String cityCode = RegionUtils.convertRegionCode(city);
+
+        if(cityCode ==null || StringUtils.isEmpty(cityCode)) {
+
+            throw new RuntimeException("cityCode is null && '', it not be allowed" );
+        }
+
+        List<String> stationCodes = null;
+
+        if(cityCode.length()==4) {
+
+            stationCodes = StationCacheUtil.newInstance().getStationListByCityCode(cityCode).stream().map(StationVo::getStationId).collect(Collectors.toList());
+
+        }
+        else if(cityCode.length()==6) {
+
+            stationCodes = StationCacheUtil.newInstance().getStationListByAdCode(cityCode).stream().map(StationVo::getStationId).collect(Collectors.toList());
+
+        }
+        else {
+
+            throw new RuntimeException("cityCode is not effective" );
+
+        }
+
+        if(stationCodes == null || stationCodes.size()==0) {
+
+            return null;
+        }
+
+
+
+        List list = new ArrayList();
+
+        //时间间隔
+        Integer timeSpan1 = Integer.parseInt(timeSpan);
+
+        ChronoUnit unit = ChronoUnit.HOURS;
+
+        String datePattern = "yyyy-MM-dd_HH";
+
+        switch(timeUnit) {
+
+            case "m":
+
+                unit = ChronoUnit.MONTHS;
+
+                datePattern = "yyyy-MM";
+
+                break;
+
+            case "d":
+
+                unit = ChronoUnit.DAYS;
+
+                datePattern = "yyyy-MM-dd";
+
+                break;
+
+            default:
+
+                break;
+        }
+
+
+        LocalDateTime endTime = LocalDateTime.of(year, month, 1, 0, 0);
+
+        LocalDateTime startTime = endTime.minus(timeSpan1, unit);
+
+        while(startTime.isBefore(endTime)) {
+
+            String redisKey = Constants.QUALITY_KRY + DateUtils.dateFormat(endTime,datePattern)+cityCode;
+
+            if(redisCache.exists(redisKey)) {
+
+                Object obj = redisCache.get(redisKey);
+
+                list.add(obj);
+            }
+
+            else {
+
+                Map<String,Object> map = stationDetailMapper.getQualityData(endTime,endTime.plus(1,unit),stationCodes,timeUnit);
+
+                list.add(map);
+
+                redisCache.set(redisKey, map);
+
+            }
+
+            endTime = endTime.minus(1,unit);
+
+
+        }
+
+        Collections.reverse(list);
+
+        return list;
+    }
+
+    @Override
+    public Map getHevData(Integer year, Integer month, String city, String timeSpan, String timeUnit) {
+
+
+        String cityCode = RegionUtils.convertRegionCode(city);
+
+        if(cityCode ==null || StringUtils.isEmpty(cityCode)) {
+
+            throw new RuntimeException("cityCode is null && '', it not be allowed" );
+        }
+
+        List<String> stationCodes = null;
+
+        if(cityCode.length()==4) {
+
+            stationCodes = StationCacheUtil.newInstance().getStationListByCityCode(cityCode).stream().map(StationVo::getStationId).collect(Collectors.toList());
+
+        }
+        else if(cityCode.length()==6) {
+
+            stationCodes = StationCacheUtil.newInstance().getStationListByAdCode(cityCode).stream().map(StationVo::getStationId).collect(Collectors.toList());
+
+        }
+        else {
+
+            throw new RuntimeException("cityCode is not effective" );
+
+        }
+
+        if(stationCodes == null || stationCodes.size()==0) {
+
+            return null;
+        }
+
+        List<String>  repeatCodes = null;
+
+        List<Map> list = new ArrayList();
+
+        //时间间隔
+        Integer timeSpan1 = Integer.parseInt(timeSpan);
+
+        ChronoUnit unit = ChronoUnit.HOURS;
+
+        String datePattern = "yyyy-MM-dd_HH";
+
+        switch(timeUnit) {
+
+            case "m":
+
+                unit = ChronoUnit.MONTHS;
+
+                datePattern = "yyyy-MM";
+
+                break;
+
+            case "d":
+
+                unit = ChronoUnit.DAYS;
+
+                datePattern = "yyyy-MM-dd";
+
+                break;
+
+            default:
+
+                break;
+        }
+
+
+        LocalDateTime endTime = LocalDateTime.of(year, month, 1, 0, 0);
+
+        LocalDateTime startTime = endTime.minus(timeSpan1, unit);
+
+        LocalDateTime pm_25_jjj_startTime = DateUtils.convertStringToLocalDateTime(sysConfig.getStartTime(), "yyyy-MM-dd HH:mm:ss");
+
+        if(pm_25_jjj_startTime.isBefore(endTime)) {
+
+            repeatCodes = stationDetailMapper.getRepeatStationCodes();
+        }
+
+
+        if(stationCodes != null && stationCodes.size()!= 0 && repeatCodes!= null && repeatCodes.size()!= 0 ) {
+
+
+            List copyStaionCodes =  new ArrayList<>();
+
+            copyStaionCodes.addAll(stationCodes);
+
+            stationCodes.removeAll(repeatCodes);
+
+            repeatCodes.retainAll(copyStaionCodes);
+
+        }
+
+
+        while(startTime.isBefore(endTime)) {
+
+            String redisKey = Constants.HEV_KEY + DateUtils.dateFormat(endTime,datePattern)+cityCode;
+
+            if(redisCache.exists(redisKey)) {
+
+                Map obj = (Map)redisCache.get(redisKey);
+
+                list.add(obj);
+
+
+            }
+
+            else {
+
+                String tailSql = "having avg(AQI)<=200";
+
+                Map<String,Object> hevDataClean = stationDetailMapper.getHevData(endTime,endTime.plus(1,unit),repeatCodes,stationCodes,timeUnit,tailSql);
+
+                Map<String,Object> hevDataTotal = stationDetailMapper.getHevData(endTime,endTime.plus(1,unit),repeatCodes,stationCodes,timeUnit,"");
+
+                Map map = new HashMap();
+
+                map.put("clean",hevDataClean);
+
+                map.put("total",hevDataTotal);
+
+                list.add(map);
+
+                redisCache.set(redisKey, map);
+
+            }
+
+            endTime = endTime.minus(1,unit);
+
+        }
+
+
+        if(list != null && list.size() != 0) {
+
+            Map resultMap = new HashMap();
+
+            speciesConfig.getSpecies().forEach(spe -> {
+
+                Map map = null;
+
+                if (resultMap.containsKey(spe)) {
+
+                    map = (Map) resultMap.get(spe);
+
+                } else {
+
+                    map = new LinkedHashMap();
+
+                    resultMap.put(spe, map);
+                }
+
+                Collections.reverse(list);
+
+                for (Map item : list) {
+
+                    if (!map.containsKey("clean") || !map.containsKey("cleandays")) {
+
+                        map.put("clean", new ArrayList());
+
+                        map.put("cleandays", new ArrayList());
+
+
+                    }
+
+                    if (!map.containsKey("tot") || !map.containsKey("totdays")) {
+
+                        map.put("tot", new ArrayList());
+
+                        map.put("totdays", new ArrayList());
+
+                    }
+
+                    Map cleanMap = (Map) item.get("clean");
+
+                    ((List) map.get("clean")).add(cleanMap.get(spe));
+
+                    ((List) map.get("cleandays")).add(cleanMap.get("ct"));
+
+                    Map totalMap = (Map) item.get("total");
+
+                    ((List) map.get("tot")).add(totalMap.get(spe));
+
+                    ((List) map.get("totdays")).add(totalMap.get("ct"));
+                }
+            });
+
+            return resultMap;
+        }
+        return null;
+
+    }
+
+    @Override
+    public Map<String, Object> getAllMonResult(String city) {
+
+        Map resultMap = new HashMap();
+
+        List repeatCodes = null;
+
+        String regionCode = RegionUtils.convertRegionCode(city);
+
+
+        List<String> stationCodes = null;
+
+        if(regionCode.length()==4 || regionCode.length()==2) {
+
+            stationCodes = StationCacheUtil.newInstance().getStationListByCityCode(regionCode).stream().map(StationVo::getStationId).collect(Collectors.toList());
+
+        }
+        else if(regionCode.length()==6) {
+
+
+            stationCodes = StationCacheUtil.newInstance().getStationListByAdCode(regionCode).stream().map(StationVo::getStationId).collect(Collectors.toList());
+
+        }
+
+        LocalDateTime now = LocalDateTime.now();
+
+        LocalDateTime endTime = LocalDateTime.of(now.getYear(), now.getMonthValue(), 1, 0, 0);
+
+        LocalDateTime startTime = LocalDateTime.of(sysConfig.getStartYear(), 2, 1, 0, 0);
+
+        LocalDateTime pm_25_JJJ_startTime = DateUtils.convertStringToLocalDateTime(sysConfig.getStartTime(), "yyyy-MM-dd HH:mm:ss");
+
+        if(pm_25_JJJ_startTime.isBefore(endTime)) {
+
+            repeatCodes = stationDetailMapper.getRepeatStationCodes();
+        }
+
+        if(stationCodes != null && stationCodes.size()!= 0 && repeatCodes!= null && repeatCodes.size()!= 0 ) {
+
+            List copyStaionCodes =  new ArrayList<>();
+
+            copyStaionCodes.addAll(stationCodes);
+
+            stationCodes.removeAll(repeatCodes);
+
+            repeatCodes.retainAll(copyStaionCodes);
+
+        }
+
+        List<Map<String,Object>>avgList = new ArrayList<>();
+
+        List<Map<String,Object>> maxMinList = new ArrayList<>();
+
+        while(startTime.isBefore(endTime)){
+
+            String redisAvgKey = Constants.AVG_MON_KEY+DateUtils.dateFormat(endTime,"yyyy-MM")+"cityCode:"+regionCode;
+
+            String redisMaxMinKey = Constants.MIN_MAX_KEY+DateUtils.dateFormat(endTime,"yyyy-MM")+"cityCode:"+regionCode;
+
+            Map map = new HashMap();
+
+            String year = String.valueOf(endTime.getYear());
+
+            String tableName = sysConfig.getYearTable().containsKey(year)?sysConfig.getYearTable().get(year):sysConfig.getYearTable().get("default");
+
+            map.put("tableName",tableName);
+
+            map.put("stationList",stationCodes);
+
+            map.put("startTime", DateUtils.dateFormat(endTime));
+
+            map.put("endTime", DateUtils.dateFormat(endTime.plus(1,ChronoUnit.MONTHS)));
+
+            map.put("repeatCodes",repeatCodes);
+
+            if(redisCache.exists(redisAvgKey)) {
+
+                avgList.add((Map)redisCache.get(redisAvgKey));
+
+            }
+
+            else {
+
+                Map avgMonMap = stationDetailMapper.getAvgMonthResultByCity(map);
+
+                avgList.add(avgMonMap);
+
+                if(!(endTime.getMonthValue() == now.getMonthValue() && endTime.getYear() == now.getYear())) {
+
+                    redisCache.set(redisAvgKey,avgMonMap);
+
+                }
+            }
+
+            if(redisCache.exists(redisMaxMinKey)) {
+
+                maxMinList.add((Map) redisCache.get(redisMaxMinKey));
+
+            }
+            else {
+
+                Map minMaxMap = stationDetailMapper.getMaxMinResultByCity(map);
+
+                if(minMaxMap == null||(minMaxMap.get("MAX") == null && minMaxMap.get("MIN") == null)) {
+
+                    minMaxMap = null;
+                }
+
+                maxMinList.add(minMaxMap);
+
+                redisCache.set(redisMaxMinKey, minMaxMap);
+
+
+            }
+
+            endTime = endTime.minus(1,ChronoUnit.MONTHS);
+
+        }
+
+        avgList.stream().forEach(avgMap ->{
+
+            if(avgMap!=null) {
+
+                Timestamp avgStamp = (Timestamp) avgMap.get("TimePoint");
+
+                LocalDateTime avgLocalDateTime = DateUtils.convertTimeStampToLocalDateTime(avgStamp);
+
+                Integer avgYear = avgLocalDateTime.getYear();
+
+                if (!resultMap.containsKey(avgYear)) {
+
+                    resultMap.put(avgYear, new HashMap());
+                }
+
+                Map map1 = (Map) resultMap.get(avgYear);
+
+                String monDatePattern = DateUtils.dateFormat(avgLocalDateTime, "yyyy-MM");
+
+                if (!map1.containsKey(monDatePattern)) {
+
+                    map1.put(monDatePattern, new HashMap());
+                }
+
+                Map innerMap = (Map)map1.get(monDatePattern);
+
+                speciesConfig.getSpecies().forEach(spe -> {
+
+                    innerMap.put(spe, avgMap.get(spe));
+
+                });
+
+
+            }
+        });
+
+        maxMinList.stream().forEach(min_max_Map -> {
+
+            if (min_max_Map != null) {
+
+                Timestamp min_MaxStamp = (Timestamp) min_max_Map.get("dt");
+
+                LocalDateTime min_MaxLocalDateTime = DateUtils.convertTimeStampToLocalDateTime(min_MaxStamp);
+
+                Integer min_maxYear = min_MaxLocalDateTime.getYear();
+
+                if (!resultMap.containsKey(min_maxYear)) {
+
+                    resultMap.put(min_maxYear, new HashMap());
+
+                }
+
+                Map map2 = (Map) resultMap.get(min_maxYear);
+
+                String monDatePattern1 = DateUtils.dateFormat(min_MaxLocalDateTime, "yyyy-MM");
+
+                if (!map2.containsKey(monDatePattern1)) {
+
+                    map2.put(monDatePattern1, new HashMap());
+                }
+
+                Map innerMap = (Map) map2.get(monDatePattern1);
+
+                innerMap.put("MAX", min_max_Map.get("MAX"));
+
+                innerMap.put("MIN", min_max_Map.get("MIN"));
+
+
+            }
+        });
+        return resultMap;
+    }
+
+    @Override
+    public Map getRankALLResultDataByArea() {
+
+        Map resultMap = new HashMap();
+
+        List list = new ArrayList();
+
+        List<String>  repeatCodes = null;
+
+        LocalDateTime nowTime = LocalDateTime.now();
+        //开始时间
+        LocalDateTime startTime = LocalDateTime.of(sysConfig.getStartYear(), 2, 1, 0, 0);
+
+        LocalDateTime endTime = LocalDateTime.of(nowTime.getYear(), nowTime.getMonthValue(), 1, 0, 0);
+
+        List<String> species = speciesConfig.getSpecies();
+
+        LocalDateTime pm_25_JJJ_startTime = DateUtils.convertStringToLocalDateTime(sysConfig.getStartTime(), "yyyy-MM-dd HH:mm:ss");
+
+        if(pm_25_JJJ_startTime.isBefore(endTime)) {
+
+            repeatCodes = stationDetailMapper.getRepeatStationCodes();
+        }
+
+        List<String> areas = CityCacheUtil.newInstance().getKeyCities().stream().map(CityVo::getRegionName).collect(Collectors.toList());
+
+        while(startTime.isBefore(endTime)) {
+
+            StringBuffer redisKey = new StringBuffer(Constants.RANK_ALL_KEY + DateTimeFormatter.ofPattern("yyyy-MM").format(endTime));
+
+            StringBuffer preSql = new StringBuffer("");
+
+            StringBuffer headSql = new StringBuffer("");
+
+            String tailSql = "";
+
+            if(redisCache.exists(redisKey.toString())) {
+
+                List list1 = (List)redisCache.get(redisKey.toString());
+
+                list.addAll(list1);
+            }
+
+            else {
+
+                Map parameterMap = new HashMap<>();
+
+                if(sysConfig.getYearTable().containsKey(endTime.getYear())) {
+
+                    parameterMap.put("tableName", sysConfig.getYearTable().get(endTime.getYear()));
+
+                }
+                else {
+
+                    parameterMap.put("tableName",sysConfig.getYearTable().get("default"));
+                }
+
+                parameterMap.put("startTime",endTime);
+
+                parameterMap.put("endTime", endTime.plus(1, ChronoUnit.MONTHS));
+
+                parameterMap.put("areas",areas);
+
+                parameterMap.put("repeatCodes",repeatCodes);
+
+                String result = "";
+
+                Random random = new Random();
+
+                for (int j = 0; j < 3; j++) {
+
+                    result += (char)(97 + random.nextInt(25));
+
+                }
+
+                for(int i = 0;i < species.size();i++) {
+
+                    preSql.append("set @").append(result + i).append(" = 0").append(";");
+
+                    headSql.append("select *,@").append(result).append(i).append(":=@").append(result).append(i).append("+1 as ").append("rank"+species.get(i)).append(" from ( ");
+
+                    tailSql =" ) q" + i + " order by val_" + species.get(i) + " asc " + tailSql;
+                }
+
+                List<Map> stationDetailList = stationDetailMapper.getRankALLResultDataByArea(preSql.toString(), headSql.toString(),parameterMap,tailSql);
+
+                if(stationDetailList!= null && stationDetailList.size() != 0) {
+
+                    for(Map map:stationDetailList) {
+
+                        String area = (String)map.get("area");
+
+                        String cityCode = CityCacheUtil.newInstance().getRegionCode(area);
+
+                        if(!StringUtils.isEmpty(cityCode)) {
+
+                            map.put("area",cityCode);
+                        }
+                    }
+
+                    list.addAll(stationDetailList);
+                }
+
+                if(!(endTime.getYear()==nowTime.getYear()&&endTime.getMonthValue()==nowTime.getMonthValue())) {
+
+                    redisCache.set(redisKey.toString(), stationDetailList);
+                }
+            }
+
+            endTime = endTime.minus(1,ChronoUnit.MONTHS);
+        }
+
+        if(list!=null && list.size()!=0) {
+
+            final List<Map> finalList = list;
+
+            speciesConfig.getSpecies().forEach(spe -> {
+
+                if (!resultMap.containsKey(spe)) {
+
+                    resultMap.put(spe, new HashMap());
+                }
+
+                finalList.stream().forEach(map1 -> {
+
+                    Map speMap = (Map) resultMap.get(spe);
+
+                    Object cityCtyCode = map1.get("area");
+
+                    if (!speMap.containsKey(cityCtyCode)) {
+
+                        speMap.put(cityCtyCode, new ArrayList<>());
+                    }
+
+                    Map valueMap = new HashMap();
+
+                    valueMap.put("rank", map1.get("rank" + spe));
+
+                    valueMap.put("Time", map1.get("timePoint"));
+
+                    valueMap.put("value", map1.get("val_" + spe));
+
+                    ((List) speMap.get(cityCtyCode)).add(valueMap);
+
+                });
+            });
+        }
+        return resultMap;
+    }
+
+    @Override
+    public Map<String, Object> getALLDate(String city, Integer year, Integer month) {
+
+        LocalDateTime startTime = LocalDateTime.of(year, month, 1, 0, 0, 0);
+
+        String dataPattern = DateUtils.dateFormat(startTime, "yyyy-MM");
+
+        String regionCode = RegionUtils.convertRegionCode(city);
+
+
+        String redisKey = Constants.AVG_DATE_KEY+dataPattern+"city:"+regionCode;
+
+        if(redisCache.exists(redisKey)) {
+
+            return (Map)redisCache.get(redisKey);
+        }
+
+        Map resultMap = new HashMap();
+
+        List<String> stationCodes = null;
+
+        String area = null;
+
+        if(regionCode.length()==4 || regionCode.length()==2) {
+
+            stationCodes = StationCacheUtil.newInstance().getStationListByCityCode(regionCode).stream().map(StationVo::getStationId).collect(Collectors.toList());
+
+            area = CityCacheUtil.newInstance().getCityByRegionCode(regionCode).getRegionName();
+        }
+        else if(regionCode.length()==6) {
+
+            stationCodes = StationCacheUtil.newInstance().getStationListByAdCode(regionCode).stream().map(StationVo::getStationId).collect(Collectors.toList());
+
+            if(CityCacheUtil.newInstance().getCityByRegionCode(regionCode.substring(0, 4))== null) {
+
+                if(CityCacheUtil.newInstance().getCityByRegionCode(regionCode.substring(0,2))!= null) {
+
+                    area = CityCacheUtil.newInstance().getCityByRegionCode(regionCode.substring(0, 2)).getRegionName();
+
+                }
+            }
+            else {
+
+                area = CityCacheUtil.newInstance().getCityByRegionCode(regionCode.substring(0, 4)).getRegionName();
+
+            }
+
+        }
+
+        String tableName = "";
+
+        if(sysConfig.getYearTable().containsKey(String.valueOf(startTime.getYear()))) {
+
+            tableName = sysConfig.getYearTable().get(String.valueOf(startTime.getYear()));
+
+        }
+        else {
+
+            tableName = sysConfig.getYearTable().get(String.valueOf(startTime.getYear()));
+
+        }
+
+        LocalDateTime endTime = startTime.plus(1, ChronoUnit.MONTHS);
+
+        List repeatCodes = null;
+
+        LocalDateTime pm_25_JJJ_startTime = DateUtils.convertStringToLocalDateTime(sysConfig.getStartTime(), "yyyy-MM-dd HH:mm:ss");
+
+        if(pm_25_JJJ_startTime.isBefore(startTime)) {
+
+            repeatCodes = stationDetailMapper.getRepeatStationCodes();
+        }
+
+        if(stationCodes != null && stationCodes.size()!= 0 && repeatCodes!= null && repeatCodes.size()!= 0 ) {
+
+            List copyStaionCodes =  new ArrayList<>();
+
+            copyStaionCodes.addAll(stationCodes);
+
+            stationCodes.removeAll(repeatCodes);
+
+            repeatCodes.retainAll(copyStaionCodes);
+
+        }
+
+        List<Map> avgList =  stationDetailMapper.getAvgDateByArea(tableName,area,startTime, endTime,repeatCodes);
+
+        List<Map> min_maxList =  stationDetailMapper.getMax_minDataByArea(tableName, area, startTime, endTime, repeatCodes);
+
+        avgList.forEach(avgMap->{
+
+            if(avgMap!=null) {
+
+                Timestamp avgStamp = (Timestamp) avgMap.get("TimePoint");
+
+                LocalDateTime avgLocalDateTime = DateUtils.convertTimeStampToLocalDateTime(avgStamp);
+
+                String monDatePattern = DateUtils.dateFormat(avgLocalDateTime, "yyyy-MM-dd");
+
+                if (!resultMap.containsKey(monDatePattern)) {
+
+                    resultMap.put(monDatePattern, new HashMap());
+                }
+
+                Map innerMap = (Map) resultMap.get(monDatePattern);
+
+                speciesConfig.getSpecies().forEach(spe -> {
+
+                    innerMap.put(spe, avgMap.get(spe));
+
+                });
+            }
+        });
+
+        min_maxList.forEach(min_maxMap -> {
+
+            if (min_maxMap != null) {
+
+                Timestamp min_MaxStamp = (Timestamp) min_maxMap.get("dt");
+
+                LocalDateTime min_MaxLocalDateTime = DateUtils.convertTimeStampToLocalDateTime(min_MaxStamp);
+
+                String monDatePattern1 = DateUtils.dateFormat(min_MaxLocalDateTime, "yyyy-MM-dd");
+
+                if (!resultMap.containsKey(monDatePattern1)) {
+
+                    resultMap.put(monDatePattern1, new HashMap());
+                }
+
+                Map innerMap = (Map) resultMap.get(monDatePattern1);
+
+                innerMap.put("MAX", min_maxMap.get("MAX"));
+
+                innerMap.put("MIN", min_maxMap.get("MIN"));
+            }
+
+        });
+
+        redisCache.set(redisKey, resultMap);
+
+        return resultMap;
+    }
+
+    public  List getRankResultDataByArea(StationDetailCondition parameter, LocalDateTime startTime, LocalDateTime endTime) {
+
+        List<Map> list = null;
 
         List areasList = parameter.getAreas();
 
@@ -635,18 +1779,18 @@ public class StationDetailServiceImpl implements StationDetailService {
             default:
         }
 
-        StringBuffer redisKey = new StringBuffer(Contants.RANK_KEY + DateTimeFormatter.ofPattern(datePattern).format(startTime));
+        StringBuffer redisKey = new StringBuffer(Constants.RANK_KEY + DateTimeFormatter.ofPattern(datePattern).format(startTime));
 
         if(areasList != null && areasList.size() != 0) {
 
             redisKey.append("areas-").append(areasList.parallelStream().collect(Collectors.joining(",")));
         }
 
-        parameter.setRedisKey(redisKey.toString());
+        if(redisCache.exists(redisKey.toString())){
 
-        if(redisCache.exists(parameter.getRedisKey())){
+            list = (List)redisCache.get(redisKey.toString());
 
-            list = (List)redisCache.get(parameter.getRedisKey());
+            return list;
         }
 
         if(list == null) {
@@ -671,7 +1815,7 @@ public class StationDetailServiceImpl implements StationDetailService {
 
             for(int i = 0;i < species.size();i++) {
 
-                preSql.append("set @").append(result+i).append(" = 0").append(";");
+                preSql.append("set @").append(result + i).append(" = 0").append(";");
 
                 headSql.append("select *,@").append(result).append(i).append(":=@").append(result).append(i).append("+1 as ").append("rank"+species.get(i)).append(" from ( ");
 
@@ -682,10 +1826,20 @@ public class StationDetailServiceImpl implements StationDetailService {
 
             if(list!= null && list.size() != 0) {
 
-                redisCache.set(parameter.getRedisKey(), list);
+                for(Map map:list) {
 
+                    String area = (String)map.get("area");
+
+                    String cityCode = CityCacheUtil.newInstance().getRegionCode(area);
+
+                    if(!StringUtils.isEmpty(cityCode)) {
+
+                        map.put("area",cityCode);
+                    }
+                }
             }
 
+            redisCache.set(redisKey.toString(), list);
         }
         return list;
     }
@@ -714,7 +1868,7 @@ public class StationDetailServiceImpl implements StationDetailService {
 
             startTime = LocalDateTime.of(year,month,1,0,0);
 
-            endTime = startTime.plus(1,ChronoUnit.MONTHS);
+            endTime = startTime.plus(1, ChronoUnit.MONTHS);
 
             tunit="m";
         }
@@ -752,12 +1906,11 @@ public class StationDetailServiceImpl implements StationDetailService {
             sort(resultList, list.get(length));
         }
 
-        System.out.println(resultList);
-
         return resultList;
     }
 
     public List getRankResultDataByRe(Integer year, Integer month, Integer date, String regionCode){
+
 
         return null;
     }

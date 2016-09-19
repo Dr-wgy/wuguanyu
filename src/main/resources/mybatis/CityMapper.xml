@@ -107,8 +107,8 @@
       cityId,
       cityName AS regionName,
       substring(regionId,1,4) AS regionId
-<!--      ,longitude AS lon,
-      latitude AS lat-->
-    FROM pm_city where regionId is not null order by regionId
+      ,longitude AS lon,
+      latitude AS lat
+    FROM pm_city where regionId is not null
   </select>
 </mapper>
