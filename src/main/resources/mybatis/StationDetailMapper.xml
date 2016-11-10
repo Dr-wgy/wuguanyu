@@ -1109,7 +1109,7 @@
   </select>
 
   <select id="getMaxTimePoint" resultType="String">
-      select DATE_FORMAT(min(TimePoint),"%Y-%m-%d %H:%i:%s") from (select MAX(TimePoint) as TimePoint from pm_25_JJJ union all select MAX(TimePoint) as TimePoint from PM_25) temp
+      select DATE_FORMAT(max(TimePoint),"%Y-%m-%d %H:%i:%s") from (select MAX(TimePoint) as TimePoint from pm_25_JJJ union all select MAX(TimePoint) as TimePoint from PM_25) temp
   </select>
 
 </mapper>
