@@ -50,11 +50,11 @@ public class VirtualSiteController extends BaseController {
 
         Map<String,Object> map = new HashMap<String,Object>();
 
-        Map<String,Object> map1 =  stationDetailService.getYearResultByVirtualSite(year,regionCode);
+        //Map<String,Object> map1 =  stationDetailService.getYearResultByVirtualSite(year,regionCode);
 
         map.put(RESULT,SUCCESS);
 
-        map.put(DATA, map1);
+        //map.put(DATA, map1);
 
         return map;
     }
@@ -64,11 +64,11 @@ public class VirtualSiteController extends BaseController {
 
         Map<String,Object> map = new HashMap<String,Object>();
 
-        Map<String,Object> resultData = stationDetailService.getLast24ResultDataByVirtualSite(regionCode);
+        //Map<String,Object> resultData = stationDetailService.getLast24ResultDataByVirtualSite(regionCode);
 
         map.put(RESULT,SUCCESS);
 
-        map.put(DATA,resultData);
+        //map.put(DATA,resultData);
 
         return map;
     }
