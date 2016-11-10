@@ -1,5 +1,5 @@
 server:
-  port: 8080
+  port: 8081
 #说明日志文件在哪里
 logging:
   path: D:\ideaworkspace\obs\logs

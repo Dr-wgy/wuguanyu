@@ -481,7 +481,7 @@
               = #{city.dateTime}
             </when>
             <otherwise>
-              = (select min(TimePoint) from (select MAX(TimePoint) as TimePoint from pm_25_JJJ union all select MAX(TimePoint) as TimePoint from ${city.tableName}) temp)
+              = (select max(TimePoint) from (select MAX(TimePoint) as TimePoint from pm_25_JJJ union all select MAX(TimePoint) as TimePoint from ${city.tableName}) temp)
             </otherwise>
           </choose>
         </when>
