@@ -66,7 +66,7 @@ public class ObsController extends BaseController {
      * 这三个请求时常用的数据直接哦那个缓存中取,如果发生变化得刷新缓存,，使用接口
      * @return
      */
-    @RequestMapping(value = "/list/province", method = RequestMethod.GET)
+    @RequestMapping(value = {"/list/province","/list/getProvince"}, method = RequestMethod.GET)
     public Map<String,Object> getProvinceList(){
 
         Map map = new HashMap<String,Object>();
@@ -77,6 +77,23 @@ public class ObsController extends BaseController {
 
         return map;
     }
+
+    @RequestMapping(value = {"/list/getCity"}, method = RequestMethod.GET)
+    public Map<String,Object> getCityList1(){
+
+        Map map = new HashMap<String,Object>();
+
+        Map<String,List> map1 = new HashMap();
+
+        List<CityVo> list = CityCacheUtil.newInstance().getKeyCities();
+
+        map.put(RESULT,SUCCESS);
+
+        map.put(DATA, list);
+
+        return map;
+    }
+
 
     @RequestMapping(value = {"/list/city"}, method = RequestMethod.GET)
     public Map<String,Object> getCityList(){
@@ -141,7 +158,7 @@ public class ObsController extends BaseController {
         return map;
     }
 
-    @RequestMapping(value="/list/county",method = RequestMethod.GET)
+    @RequestMapping(value={"/list/county","/list/getCounty"},method = RequestMethod.GET)
     public Map<String,Object> getCountyList(){
 
         Map map = new HashMap<String,Object>();
@@ -206,6 +223,22 @@ public class ObsController extends BaseController {
         map.put(RESULT, SUCCESS);
 
         map.put(DATA, map1);
+
+        return map;
+    }
+
+    @RequestMapping(value = "/list/getStation", method = RequestMethod.GET)
+    public Map<String,Object> getStationList1(){
+
+        Map map = new HashMap<String,Object>();
+
+        final Map<String,List> map1 = new HashMap<String,List>();
+
+        List<StationVo> list = StationCacheUtil.newInstance().getStationList();
+
+        map.put(RESULT, SUCCESS);
+
+        map.put(DATA, list);
 
         return map;
     }
