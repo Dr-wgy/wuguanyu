@@ -85,7 +85,7 @@ public class ObsController extends BaseController {
 
         Map<String,List> map1 = new HashMap();
 
-        List<CityVo> list = CityCacheUtil.newInstance().getKeyCities();
+        List<CityVo> list = CityCacheUtil.newInstance().getCityList();
 
         map.put(RESULT,SUCCESS);
 
@@ -170,7 +170,7 @@ public class ObsController extends BaseController {
         return map;
     }
 
-    @RequestMapping(value = "/list/station", method = RequestMethod.GET)
+    @RequestMapping(value = {"/list/station"}, method = RequestMethod.GET)
     public Map<String,Object> getStationList(){
 
         Map map = new HashMap<String,Object>();
