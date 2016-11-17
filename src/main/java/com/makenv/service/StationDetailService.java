@@ -31,18 +31,6 @@ public interface StationDetailService {
 
     Map<String,Object> getAllCurrentPlace(CityParamVo cityParamVo);
 
-    List<Map<String,Object>> getRankMonResultRegionCode(List<String> regionCode, LocalDateTime year, List<String> areas, String tUnit);
-
-    List getRankResultDataByArea(StationDetailCondition parameter, LocalDateTime startTime, LocalDateTime endTime);
-
-    List getRankResultDataByRes(Integer year, Integer month, Integer date, Set<String> regionCode);
-
-    Map getRankResultDataByRe(String tableName,String tunit,LocalDateTime startTime,LocalDateTime endTime,String regionCode);
-
-    Map getRankResultDataByArea(StationDetailCondition stationDetailCondition);
-
-    Map<String,Object> getAvgDateResultByRegionCode(Integer year, Integer month, Integer date, String regionCode);
-
     Map<String,Object> getAvgResultByAreaOrStation(LocalDateTime startDateTime, LocalDateTime startDateTime1, String area, String areaId, String unit);
 
     List getQualityData(Integer year, Integer month, String city, String timeSpan, String timeUnit);

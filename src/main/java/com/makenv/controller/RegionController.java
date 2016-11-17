@@ -1,10 +1,7 @@
 package com.makenv.controller;
 
 import com.makenv.condition.StationDetailCondition;
-import com.makenv.service.AsyncService;
-import com.makenv.service.CountyService;
-import com.makenv.service.ProvinceService;
-import com.makenv.service.StationDetailService;
+import com.makenv.service.*;
 import com.makenv.vo.RankAreaData;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -12,6 +9,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import javax.jnlp.IntegrationService;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
@@ -34,6 +32,9 @@ public class RegionController extends BaseController {
     @Autowired
     private AsyncService asyncService;
 
+    @Autowired
+    private RankService rankService;
+
     @RequestMapping(value = "api/avgMonthInRe", method = RequestMethod.GET)
     public Map<String,Object> getMonthResult(@RequestParam("year") Integer year,@RequestParam("month") Integer month, @RequestParam("regionCode") String regionCode) {
 
@@ -44,20 +45,6 @@ public class RegionController extends BaseController {
         map.put(RESULT,SUCCESS);
 
         map.put(DATA, resultMap);
-
-        return map;
-    }
-
-    @RequestMapping(value = "api/dateInRe", method = RequestMethod.GET)
-    public Map<String,Object> getDayValue(@RequestParam("year") Integer year,@RequestParam("month") Integer month,@RequestParam("date") Integer date, @RequestParam("regionCode") String regionCode) {
-
-        Map<String,Object> map = new HashMap<String,Object>();
-
-        Map<String,Object> resultMap = stationDetailService.getAvgDateResultByRegionCode(year, month, date, regionCode);
-
-        map.put(RESULT,SUCCESS);
-
-        map.put(DATA, "");
 
         return map;
     }
@@ -96,11 +83,73 @@ public class RegionController extends BaseController {
 
         Map<String,Object> map = new HashMap<String,Object>();
 
-        Map resultDataByArea= stationDetailService.getRankResultDataByArea(stationDetailCondition);
+        Map resultDataByArea= rankService.getRankResultDataByArea(stationDetailCondition);
 
         map.put(RESULT,SUCCESS);
 
         map.put(DATA,resultDataByArea);
+
+        return map;
+    }
+
+    @RequestMapping(value={"api/rankByRe"},params = {"rankType=DATE"},method = RequestMethod.GET)
+    public Map<String,Object> getRankDayResult(@RequestParam("year")Integer year,@RequestParam("month") Integer month,@RequestParam("date") Integer date,@RequestParam("regionCode")TreeSet<String> regionCode){
+
+        Map<String,Object> map = new HashMap<String,Object>();
+
+        List resultMap = rankService.getRankResultDataByRegionCodes(year,month,date,regionCode);
+
+        map.put(RESULT,SUCCESS);
+
+        map.put(DATA,resultMap);
+
+        return map;
+    }
+
+    @RequestMapping(value={"api/rankByRe"},params = {"rankType=MONTH"},method = RequestMethod.GET)
+    public Map<String,Object> getRankMonthResult(@RequestParam("year")Integer year,@RequestParam("month") Integer month,@RequestParam("regionCode")TreeSet<String> regionCode){
+
+        Map<String,Object> map = new HashMap<String,Object>();
+
+        List resultMap = rankService.getRankResultDataByRegionCodes(year, month, regionCode);
+
+        //Map resultDataByArea= stationDetailService.getRankResultDataByArea(stationDetailCondition);
+
+        map.put(RESULT,SUCCESS);
+
+        map.put(DATA,resultMap);
+
+        return map;
+    }
+
+    @RequestMapping(value={"api/rankByRe"},params = {"rankType=HOUR"},method = RequestMethod.GET)
+    public Map<String,Object> getRankHourResult(@RequestParam("year")Integer year,@RequestParam("month") Integer month,@RequestParam("date") Integer date,@RequestParam ("hour") Integer hour,@RequestParam("regionCode")TreeSet<String> regionCode){
+
+        Map<String,Object> map = new HashMap<String,Object>();
+
+        List resultMap = rankService.getRankResultDataByRegionCodes(year,month,date,hour,regionCode);
+
+        //Map resultDataByArea= stationDetailService.getRankResultDataByArea(stationDetailCondition);
+
+        map.put(RESULT,SUCCESS);
+
+        map.put(DATA,resultMap);
+
+        return map;
+    }
+
+    @RequestMapping(value={"api/rankByRe"},params = {"rankType=YEAR"},method = RequestMethod.GET)
+    public Map<String,Object> getRankYearResult(@RequestParam("year")Integer year,@RequestParam("regionCode")TreeSet<String> regionCode){
+
+        Map<String,Object> map = new HashMap<String,Object>();
+
+        List resultMap = rankService.getRankResultDataByRegionCodes(year, regionCode);
+
+        //Map resultDataByArea= stationDetailService.getRankResultDataByArea(stationDetailCondition);
+
+        map.put(RESULT,SUCCESS);
+
+        map.put(DATA,resultMap);
 
         return map;
     }
@@ -118,80 +167,6 @@ public class RegionController extends BaseController {
 
         return map;
     }
-
-   @RequestMapping(value="api/rankLastByArea",method=RequestMethod.GET)
-   public Map<String,Object> rankLastByArea(StationDetailCondition stationDetailCondition){
-
-       Map<String,Object> map = new HashMap<String,Object>();
-
-       Map resultDataByArea = stationDetailService.getRankResultDataByArea(stationDetailCondition);
-
-       map.put(RESULT,SUCCESS);
-
-       map.put(DATA,resultDataByArea);
-
-       return map;
-   }
-
-    @RequestMapping(value="api/rankByArea",method=RequestMethod.GET)
-    public Map<String,Object> getRankResult1(@RequestParam("year")Integer year,@RequestParam("month")Integer month,@RequestParam(value="date",required = false)Integer date,@RequestParam(required = false)List<String> areas){
-
-        Map<String,Object> map = new HashMap<String,Object>();
-
-        StationDetailCondition condition = new StationDetailCondition();
-
-        LocalDateTime startTime = null;
-
-        LocalDateTime endTime = null;
-
-        String datePattern = "";
-
-        if(date != null) {
-
-            condition.setTunit("d");
-
-            endTime = LocalDateTime.of(year,month,date+1,0,0);
-
-        }
-        else {
-
-            endTime = LocalDateTime.of(year,month+1,1,0,0);
-        }
-
-        if(areas != null && areas.size() != 0) {
-
-            condition.setAreas(areas);
-        }
-
-        switch (condition.getTunit()) {
-
-            case "m":
-
-                startTime = endTime.minus(1, ChronoUnit.MONTHS);
-
-                break;
-
-            case "d":
-
-                startTime = endTime.minus(1, ChronoUnit.DAYS);
-
-                break;
-
-            default:
-
-                break;
-
-        }
-
-        List<RankAreaData> list = stationDetailService.getRankResultDataByArea(condition, startTime, endTime);
-
-        map.put(RESULT,SUCCESS);
-
-        map.put(DATA,list);
-
-        return map;
-    }
-
     @RequestMapping(value = "api/baseYear", method = RequestMethod.GET)
     public Map<String,Object> getBaseYearResult(@RequestParam("area") String area,@RequestParam("year") Integer year){
 
@@ -206,7 +181,7 @@ public class RegionController extends BaseController {
         return map;
     }
 
-    @RequestMapping(value = "api/rankByRe" ,method= RequestMethod.GET)
+   /* @RequestMapping(value = "api/rankByRe",method= RequestMethod.GET)
     public Map<String,Object> getRankResultByRe(@RequestParam("year")Integer year,@RequestParam("month")Integer month,@RequestParam(value="date",required = false)Integer date,@RequestParam("regionCode")TreeSet<String> regionCode){
 
         Map<String,Object> map = new HashMap<String,Object>();
@@ -218,7 +193,6 @@ public class RegionController extends BaseController {
         map.put(DATA,list);
 
         return map;
-    }
-
+    }*/
 
 }

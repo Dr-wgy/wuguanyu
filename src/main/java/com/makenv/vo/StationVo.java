@@ -1,5 +1,7 @@
 package com.makenv.vo;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 /**
  * Created by wgy on 2016/8/17.
  */
@@ -67,7 +69,7 @@ public class StationVo {
     public void setAdCode(String adCode) {
         this.adCode = adCode;
     }
-
+    @JsonIgnore
     private String adCode;
 
     public Integer getCityId() {

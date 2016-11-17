@@ -12,9 +12,6 @@ import java.util.List;
 import java.util.Map;
 
 public interface StationDetailMapper {
-    int insert(StationDetail record);
-
-    int insertSelective(StationDetail record);
 
     List<StationDetail> selectStationDetailByTimeInterval(@Param("startTime")String startTime, @Param("endTime")String endTime);
 
@@ -25,23 +22,9 @@ public interface StationDetailMapper {
 
     List<Map<String,Object>> getLastTimeSpanResultData(Map<String, Object> map);
 
-    List<Map<String,Object>> selectAvgYearResultByStationCode(Map<String, Object> map);
-
-    List<Map<String,Object>> getAvgMonthResultByStationCode(Map<String, Object> map);
-
     List<Map<String,Object>> selectOverStandardGroupByDate1(Map<String, Object> map);
 
-    List<Map<String,Object>> getAllCurrentPlace(CityParamVo cityParamVo);
-
-    List<Map<String,Object>> getRankResultMonthDataByArea(@Param("listArea") List<String> listArea, @Param("startTime") LocalDateTime startTime, @Param("endTime") LocalDateTime endTime, @Param("tableName")String tableName);
-
     List<Map> getRankResultDataByArea(@Param("preSql")String preSql,@Param("headSql")String headSql, @Param("parameterModel") StationDetailCondition parameter, @Param("startTime") LocalDateTime startTime, @Param("endTime") LocalDateTime endTime, @Param("tailSql")String tailSql);
-
-    int updateStatus(@Param("preSql")String preSql);
-
-    List getRankResultDataByRe(@Param("unit")String unit, @Param("startTime")LocalDateTime startTime, @Param("endTime")LocalDateTime endTime, @Param("stationList")List list);
-
-    Map<String,Object> getAvgResultByRe(@Param("tableName")String tableName, @Param("tunit")String tunit, @Param("startTime")LocalDateTime startTime, @Param("endTime")LocalDateTime endTime,@Param("stationList") List stationList);
 
     Map<String,Object> getAvgMonthResultByCity(Map<String, Object> map);
 
@@ -53,11 +36,7 @@ public interface StationDetailMapper {
 
     List<Map<String,Object>> getLastTimeSpanResultDataByJING_JIN_JI(Map<String, Object> map);
 
-    List<Map<String,Object>> getLastTimeSpanResultDataByNOT_JING_JIN_JI(Map<String, Object> map);
-
     List<Map<String,Object>> getAllCurrentPlaceByJING_JIN_JI(@Param("city")CityParamVo cityParamVo, @Param("extraMap")Map map);
-
-    List<Map<String,Object>> getAllCurrentPlaceByNOT_JING_JIN_JI(@Param("city")CityParamVo cityParamVo, @Param("extraMap")Map map);
 
     List<String> getRepeatStationCodes();
 
@@ -76,4 +55,6 @@ public interface StationDetailMapper {
     List<Map> getMax_minDataByArea(@Param("tableName")String tableName, @Param("area") String area, @Param("startTime") LocalDateTime startTime, @Param("endTime") LocalDateTime endTime, @Param("repeatCodes") List repeatCodes);
 
     String getMaxTimePoint();
+
+    Map<String,Object> getAvgResultByStas(@Param("tableName") String tableName, @Param("startTime") LocalDateTime startTime, @Param("endTime") LocalDateTime endTime, @Param("stationList") List stationList, @Param("repeatCodes")List repeatCodes);
 }

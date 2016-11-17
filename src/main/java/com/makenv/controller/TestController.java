@@ -3,6 +3,7 @@ package com.makenv.controller;
 import com.makenv.condition.StationDetailCondition;
 import com.makenv.config.SpeciesConfig;
 import com.makenv.domain.City;
+import com.makenv.service.RankService;
 import com.makenv.service.StationDetailService;
 import com.makenv.service.StationService;
 import com.makenv.service.impl.StationDetailServiceImpl;
@@ -39,6 +40,9 @@ public class TestController extends BaseController {
     @Autowired
     private SpeciesConfig speciesConfig;
 
+    @Autowired
+    private RankService rankService;
+
 /*    @Resource
     private RedisTemplate RedisTemplate;*/
 
@@ -64,7 +68,7 @@ public class TestController extends BaseController {
 
         LocalDateTime endTime = startTime.plus(1, ChronoUnit.MONTHS);
 
-        stationDetailService.getRankResultDataByArea(new StationDetailCondition(),startTime,endTime);
+        rankService.getRankResultDataByArea(new StationDetailCondition(), startTime, endTime);
 
         return null;
     }

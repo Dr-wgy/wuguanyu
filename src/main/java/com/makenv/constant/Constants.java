@@ -31,4 +31,13 @@ public class Constants {
 
     public static final String AVG_DATE_KEY="key:date:avg&max_min";
 
+    public static final String RANK_MONTH = "key:rank:month";
+
+    public static final String RANK_DAY = "key:rank:day";
+
+    public static final String RANK_HOUR = "key:rank:hour";
+
+    public static final String RANK_YEAR = "key:rank:year";
+
+
 }
