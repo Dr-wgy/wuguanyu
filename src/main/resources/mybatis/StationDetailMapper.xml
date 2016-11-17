@@ -571,7 +571,6 @@
 
   <select id="getAvgResultByStas" resultType="java.util.LinkedHashMap">
      select
-        Area as area,
         <include refid="avgSpecies"/>
      from (
      select

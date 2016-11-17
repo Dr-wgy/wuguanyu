@@ -1,6 +1,7 @@
 package com.makenv.cache;
 
 import com.makenv.vo.ProvinceVo;
+import org.springframework.util.StringUtils;
 
 import java.util.List;
 import java.util.Map;
@@ -38,6 +39,25 @@ public class ProvinceCacheUtil {
     }
 
     private List<ProvinceVo> provinceList;
+
+    public String getArea(String regionId) {
+
+        if(StringUtils.isEmpty(regionId)) {
+
+            return null;
+        }
+
+        for (ProvinceVo provinceVo:provinceList) {
+
+            if(regionId.equals(provinceVo.getRegionId())) {
+
+                return provinceVo.getRegionName();
+            }
+
+
+        }
+        return null;
+    }
 
 
 }

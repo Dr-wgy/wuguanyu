@@ -2,6 +2,7 @@ package com.makenv.cache;
 
 import com.makenv.vo.CityVo;
 import com.makenv.vo.CountyVo;
+import org.springframework.util.StringUtils;
 
 import java.util.List;
 import java.util.Map;
@@ -48,6 +49,26 @@ public class CountyCacheUtil {
 
     public List getCountyListByCity(String specialCityId) {
 
-        return this.countyList.stream().filter(county->(county!= null && county.getRegionId()!=null)?county.getRegionId().startsWith(specialCityId):false).collect(Collectors.toList());
+        return this.countyList.stream().filter(county -> (county != null && county.getRegionId() != null) ? county.getRegionId().startsWith(specialCityId) : false).collect(Collectors.toList());
+    }
+
+    public String getArea(String regionCode) {
+
+        if(StringUtils.isEmpty(regionCode)) {
+
+            return null;
+        }
+
+        for (CountyVo countyVo:countyList) {
+
+            if(regionCode.equals(countyVo.getRegionId())) {
+
+                return countyVo.getRegionName();
+            }
+
+
+        }
+
+        return null;
     }
 }

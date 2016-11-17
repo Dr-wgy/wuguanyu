@@ -5,6 +5,8 @@ package com.makenv.cache;
 import com.makenv.domain.City;
 import com.makenv.util.RegionUtils;
 import com.makenv.vo.CityVo;
+import com.makenv.vo.ProvinceVo;
+import org.springframework.util.StringUtils;
 
 import java.util.List;
 import java.util.Map;
@@ -76,7 +78,7 @@ public class CityCacheUtil {
 
         final String provinceId1 = RegionUtils.convertRegionCode(provinceId);
 
-        return this.getKeyCities().stream().filter(cityVo -> cityVo!=null && cityVo.getCityId() != null?cityVo.getRegionId().startsWith(provinceId1):false).collect(Collectors.toList());
+        return this.getKeyCities().stream().filter(cityVo -> cityVo != null && cityVo.getCityId() != null ? cityVo.getRegionId().startsWith(provinceId1) : false).collect(Collectors.toList());
 
     }
 
@@ -86,6 +88,26 @@ public class CityCacheUtil {
 
 
         return this.cityList.stream().filter(cityVo -> cityVo!=null && cityVo.getCityId() != null?cityVo.getRegionId().startsWith(provinceId1):false).collect(Collectors.toList());
+
+    }
+
+    public String getArea(String regionCode) {
+
+        if(StringUtils.isEmpty(regionCode)) {
+
+            return null;
+        }
+
+        for (CityVo cityVo:cityList) {
+
+            if(regionCode.equals(cityVo.getRegionId())) {
+
+                return cityVo.getRegionName();
+            }
+
+
+        }
+        return null;
 
     }
 }

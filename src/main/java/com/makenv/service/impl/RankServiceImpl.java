@@ -1,12 +1,11 @@
 package com.makenv.service.impl;
 
-import com.makenv.cache.CityCacheUtil;
-import com.makenv.cache.RedisCache;
-import com.makenv.cache.StationCacheUtil;
+import com.makenv.cache.*;
 import com.makenv.condition.StationDetailCondition;
 import com.makenv.config.SpeciesConfig;
 import com.makenv.config.SysConfig;
 import com.makenv.constant.Constants;
+import com.makenv.domain.Province;
 import com.makenv.mapper.StationDetailMapper;
 import com.makenv.mapper.StationMapper;
 import com.makenv.service.AsyncService;
@@ -319,7 +318,35 @@ public class RankServiceImpl implements RankService {
 
             map1.put("regionId", regionCode);
 
-            map1.put("timePoint",timePoint);
+            map1.put("timePoint", timePoint);
+
+            String regionName = "";
+
+            switch (regionCode.length()) {
+
+                case 2:
+                    regionName = ProvinceCacheUtil.newInstance().getArea(regionCode);
+
+                    break;
+
+                case 4:
+
+                    regionName = CityCacheUtil.newInstance().getArea(regionCode);
+
+                    break;
+
+                case 6:
+
+                    regionName = CountyCacheUtil.newInstance().getArea(regionCode);
+
+
+
+            }
+
+            if(StringUtils.isEmpty(regionName))
+
+                map1.put("regionName", regionName);
+
 
             list.add(map1);
 
