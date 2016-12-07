@@ -25,6 +25,10 @@ public class Constants {
 
     public static final String AVG_MON_KEY="key:mon:avg";
 
+    public static final String AVG_STTOEN_KEY="key:avg:start-end:";
+
+    public static final String AVG_DAY_KEY="key:avg:day:";
+
     public static final String MIN_MAX_KEY="key:max-min:";
 
     public static final String RANK_ALL_KEY = "key:rankAll";
@@ -38,6 +42,12 @@ public class Constants {
     public static final String RANK_HOUR = "key:rank:hour";
 
     public static final String RANK_YEAR = "key:rank:year";
+
+    public static final String RRANK_STTOEN_KEY="key:rank:avg:start-end:";
+
+    public static final String AVG_DATE_KEY_EACH_REGIONS="key:rank:avg:start-end:regions";
+
+    public static final String AVG_DATE_KEY_EACH_REGION = "key:date:region:avg";
 
 
 }

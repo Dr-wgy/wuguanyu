@@ -1,14 +1,12 @@
 package com.makenv.service;
 
-import com.makenv.condition.StationDetailCondition;
 import com.makenv.domain.StationDetail;
 import com.makenv.vo.CityParamVo;
 import com.makenv.vo.LonLatVo;
-import com.makenv.vo.RankAreaData;
+
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 /**
  * Created by wgy on 2016/8/9.
@@ -42,4 +40,12 @@ public interface StationDetailService {
     Map getRankALLResultDataByArea();
 
     Map<String,Object> getALLDate(String city, Integer year, Integer month);
+
+    Map getAvgSpeciesHourResultInRegionCode(LocalDateTime endHourTime);
+
+    void getAvgSpeciesDateResultByRegionCode(LocalDateTime yesterday);
+
+    Map getAvgSpeciesHourResultInRegionCode1(LocalDateTime endHourTime);
+
+    void getAvgSpeciesDateResultByRegionCode1(LocalDateTime yesterday);
 }

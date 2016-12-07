@@ -1,9 +1,15 @@
 package com.makenv.util;
 
+import com.makenv.cache.CityCacheUtil;
+import com.makenv.cache.CountyCacheUtil;
+import com.makenv.cache.ProvinceCacheUtil;
 import javafx.collections.ObservableMap;
+import org.springframework.util.StringUtils;
 
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * Created by Administrator on 2016/8/12.
@@ -113,4 +119,80 @@ public class RegionUtils {
         return regionCode;
 
     }
+
+    public static String getRegionName(String regionCode) {
+
+        String regionName = "";
+
+        switch (regionCode.length()) {
+
+            case 2:
+
+                regionName = ProvinceCacheUtil.newInstance().getArea(regionCode);
+
+                break;
+
+            case 4:
+
+                regionName = CityCacheUtil.newInstance().getArea(regionCode);
+
+                break;
+
+            case 6:
+
+                regionName = CountyCacheUtil.newInstance().getArea(regionCode);
+
+
+
+        }
+
+
+        return regionName;
+    }
+
+    public static String getParentName(String regionCode, String regionName) {
+
+        String parentName = "";
+
+        switch (regionCode.length()) {
+
+            case 2:
+
+                return regionName;
+
+            case 4:
+
+                parentName = ProvinceCacheUtil.newInstance().getArea(regionCode.substring(0,2));
+
+                break;
+
+            case 6:
+
+                parentName = CityCacheUtil.newInstance().getArea(regionCode.substring(0,4));
+
+        }
+
+        if(StringUtils.isEmpty(parentName)) {
+
+            parentName = regionName;
+        }
+
+
+        return parentName;
+    }
+
+    public static Set convertRegionCode(Set regionCode){
+
+        Set set = new HashSet();
+
+        regionCode.stream().forEach(str->{
+
+            set.add(convertRegionCode(str.toString()));
+
+         });
+
+        return set;
+
+    }
+
 }

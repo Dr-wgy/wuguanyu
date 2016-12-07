@@ -6,16 +6,18 @@ import com.makenv.cache.ProvinceCacheUtil;
 import com.makenv.cache.StationCacheUtil;
 import com.makenv.mapper.CityMapper;
 import com.makenv.mapper.ProvinceMapper;
-import com.makenv.service.CityService;
-import com.makenv.service.CountyService;
-import com.makenv.service.ProvinceService;
-import com.makenv.service.StationService;
+import com.makenv.service.*;
+import com.makenv.task.CollectBaseDataTask;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.stereotype.Component;
+
+import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
+import java.util.Map;
 
 /**
  * Created by wgy on 2016/8/8.
@@ -38,6 +40,9 @@ public class InitDataListener implements ApplicationListener<ContextRefreshedEve
     @Autowired
     private CountyService countyService;
 
+    @Autowired
+    private CollectBaseDataTask collectBaseDataTask;
+
 
     @Override
     public void onApplicationEvent(ContextRefreshedEvent event) {
@@ -52,7 +57,23 @@ public class InitDataListener implements ApplicationListener<ContextRefreshedEve
 
           CountyCacheUtil.newInstance().setCountyList(countyService.getAllCountyList());
 
+          init24Data();
       }
 
+    }
+
+    private void init24Data() {
+
+        LocalDateTime startTime = LocalDateTime.now();
+
+        System.out.println(startTime);
+
+        collectBaseDataTask.doHourTask(24);
+
+        LocalDateTime endTime = LocalDateTime.now();
+
+        System.out.println(endTime);
+
+        ChronoUnit.SECONDS.between(startTime,endTime);
     }
 }

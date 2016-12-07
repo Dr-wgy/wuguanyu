@@ -1,9 +1,6 @@
 package com.makenv.service.impl;
 
-import com.makenv.cache.CityCacheUtil;
-import com.makenv.cache.RedisCache;
-import com.makenv.cache.StationCacheUtil;
-import com.makenv.condition.StationDetailCondition;
+import com.makenv.cache.*;
 import com.makenv.config.FigConfig;
 import com.makenv.config.SpeciesConfig;
 import com.makenv.config.SysConfig;
@@ -11,14 +8,15 @@ import com.makenv.constant.Constants;
 import com.makenv.dao.StationDetailMultipleDao;
 import com.makenv.domain.StationDetail;
 import com.makenv.enums.UnitLengthEnum;
+import com.makenv.mapper.StationDetailCopyMapper;
 import com.makenv.mapper.StationDetailMapper;
-import com.makenv.service.AsyncService;
 import com.makenv.service.StationDetailService;
-import com.makenv.task.MonthTask;
-import com.makenv.task.SpecialDealer;
 import com.makenv.util.DateUtils;
 import com.makenv.util.RegionUtils;
-import com.makenv.vo.*;
+import com.makenv.vo.CityParamVo;
+import com.makenv.vo.CityVo;
+import com.makenv.vo.LonLatVo;
+import com.makenv.vo.StationVo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -33,9 +31,6 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
-import java.util.concurrent.Callable;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Future;
 import java.util.stream.Collectors;
 
 /**
@@ -51,6 +46,10 @@ public class StationDetailServiceImpl implements StationDetailService {
 
     @Autowired
     private StationDetailMapper stationDetailMapper;
+
+    @Autowired
+    private StationDetailCopyMapper stationDetailCopyMapper;
+
 
     @Resource
     private RedisCache redisCache;
@@ -1635,5 +1634,384 @@ public class StationDetailServiceImpl implements StationDetailService {
         redisCache.set(redisKey, resultMap);
 
         return resultMap;
+    }
+
+
+    public Map getAvgSpeciesHourResultInRegionCode1(LocalDateTime endHourTime) {
+
+        Map resultMap = new HashMap();
+
+        List<Map<String,Object>> provinceMapList = stationDetailCopyMapper.getAvgSpeciesResultByProvince(endHourTime);
+
+        List<Map<String,Object>> cityMapList = stationDetailCopyMapper.getAvgSpeciesResultByCity(endHourTime);
+
+        List<Map<String,Object>> countyMapList = stationDetailCopyMapper.getAvgSpeciesResultByCounty(endHourTime);
+
+        provinceMapList.stream().forEach(Map->{
+
+            String regionId = (String)Map.get("regionId");
+
+            if(!StringUtils.isEmpty(regionId)) {
+
+                resultMap.put(regionId,Map);
+            }
+
+        });
+
+        cityMapList.stream().forEach(Map->{
+
+            String regionId = (String)Map.get("regionId");
+
+            if(!StringUtils.isEmpty(regionId)) {
+
+                resultMap.put(regionId,Map);
+
+            }
+
+        });
+
+        countyMapList.stream().forEach(Map->{
+
+            String regionId = (String)Map.get("regionId");
+
+            if(!StringUtils.isEmpty(regionId)) {
+
+                resultMap.put(regionId,Map);
+
+            }
+        });
+
+
+      /*  ProvinceCacheUtil.newInstance().getProvinceList().stream().forEach(ProvinceVo -> {
+
+            String regionId = ProvinceVo.getRegionId();
+
+            String regionName = ProvinceVo.getRegionName();
+
+            Map provinceMap = stationDetailCopyMapper.getAvgSpeciesResultByProvinceOrCity(endHourTime, regionId + "%");
+
+            if(provinceMap == null) {
+
+                provinceMap = new LinkedHashMap();
+            }
+
+            provinceMap.put("regionId", regionId);
+
+            provinceMap.put("regionName", regionName);
+
+            provinceMap.put("regionType", 1);
+
+            if (provinceMap != null) {
+
+                resultMap.put(regionId, provinceMap);
+
+            }
+        });
+
+        CityCacheUtil.newInstance().getCityList().stream().forEach(CityVo -> {
+
+            String regionId = CityVo.getRegionId();
+
+            String regionName = CityVo.getRegionName();
+
+            Map cityMap = stationDetailCopyMapper.getAvgSpeciesResultByProvinceOrCity(endHourTime, regionId + "%");
+
+            if(cityMap == null) {
+
+                cityMap = new LinkedHashMap();
+            }
+
+            cityMap.put("regionId",regionId);
+
+            cityMap.put("regionName",regionName);
+
+            cityMap.put("regionType",2);
+
+            if(cityMap != null) {
+
+                resultMap.put(CityVo.getRegionId(),cityMap);
+
+            }
+        });
+
+        CountyCacheUtil.newInstance().getCountyList().stream().forEach(CountyVo -> {
+
+            String regionId = CountyVo.getRegionId();
+
+            String regionName = CountyVo.getRegionName();
+
+            Map countyMap = stationDetailCopyMapper.getAvgSpeciesResultByCounty(endHourTime, regionId);
+
+            if(countyMap == null) {
+
+                countyMap = new LinkedHashMap();
+            }
+
+
+            countyMap.put("regionId", regionId);
+
+            countyMap.put("regionName", regionName);
+
+            countyMap.put("regionType",3);
+
+            if(countyMap != null) {
+
+                resultMap.put(CountyVo.getRegionId(),countyMap);
+
+            }
+
+        });*/
+
+        return resultMap;
+    }
+
+    @Override
+    public Map getAvgSpeciesHourResultInRegionCode(LocalDateTime endHourTime) {
+
+        Map resultMap = new HashMap();
+
+        ProvinceCacheUtil.newInstance().getProvinceList().stream().forEach(ProvinceVo -> {
+
+            String regionId = ProvinceVo.getRegionId();
+
+            String regionName = ProvinceVo.getRegionName();
+
+            Map provinceMap = stationDetailCopyMapper.getAvgSpeciesResultByProvinceOrCity(endHourTime, regionId + "%");
+
+            if(provinceMap == null) {
+
+                provinceMap = new LinkedHashMap();
+            }
+
+            provinceMap.put("regionId", regionId);
+
+            provinceMap.put("regionName", regionName);
+
+            provinceMap.put("regionType", 1);
+
+            if (provinceMap != null) {
+
+                resultMap.put(regionId, provinceMap);
+
+            }
+        });
+
+        CityCacheUtil.newInstance().getCityList().stream().forEach(CityVo -> {
+
+            String regionId = CityVo.getRegionId();
+
+            String regionName = CityVo.getRegionName();
+
+            Map cityMap = stationDetailCopyMapper.getAvgSpeciesResultByProvinceOrCity(endHourTime, regionId + "%");
+
+            if(cityMap == null) {
+
+                cityMap = new LinkedHashMap();
+            }
+
+            cityMap.put("regionId",regionId);
+
+            cityMap.put("regionName",regionName);
+
+            cityMap.put("regionType",2);
+
+            if(cityMap != null) {
+
+                resultMap.put(CityVo.getRegionId(),cityMap);
+
+            }
+        });
+
+        CountyCacheUtil.newInstance().getCountyList().stream().forEach(CountyVo -> {
+
+            String regionId = CountyVo.getRegionId();
+
+            String regionName = CountyVo.getRegionName();
+
+            Map countyMap = stationDetailCopyMapper.getAvgSpeciesResultByCounty2(endHourTime, regionId);
+
+            if(countyMap == null) {
+
+                countyMap = new LinkedHashMap();
+            }
+
+
+            countyMap.put("regionId", regionId);
+
+            countyMap.put("regionName", regionName);
+
+            countyMap.put("regionType",3);
+
+            if(countyMap != null) {
+
+                resultMap.put(CountyVo.getRegionId(),countyMap);
+
+            }
+
+        });
+
+        return resultMap;
+    }
+
+
+    @Override
+    public void getAvgSpeciesDateResultByRegionCode1(LocalDateTime yesterday) {
+
+        LocalDateTime endDateTime = yesterday.plus(1, ChronoUnit.DAYS);
+
+        Map resultMap = new HashMap();
+
+        List<Map<String,Object>> provinceMapList = stationDetailCopyMapper.getAvgSpeciesResultByProvinceInDate(yesterday, endDateTime);
+
+        List<Map<String,Object>> cityMapList = stationDetailCopyMapper.getAvgSpeciesResultByCityInDate(yesterday, endDateTime);
+
+        List<Map<String,Object>> countyMapList = stationDetailCopyMapper.getAvgSpeciesResultByCountyInDate(yesterday, endDateTime);
+
+        provinceMapList.stream().forEach(Map->{
+
+            String regionId = (String)Map.get("regionId");
+
+            if(!StringUtils.isEmpty(regionId)) {
+
+                resultMap.put(regionId,Map);
+
+                String key = String.join(":",Constants.AVG_DATE_KEY_EACH_REGION,DateTimeFormatter.ofPattern("yyyy-MM-dd").format(yesterday),regionId);
+
+                redisCache.set(key,Map);
+
+            }
+
+        });
+
+        cityMapList.stream().forEach(Map->{
+
+            String regionId = (String)Map.get("regionId");
+
+            if(!StringUtils.isEmpty(regionId)) {
+
+                resultMap.put(regionId,Map);
+
+                String key = String.join(":",Constants.AVG_DATE_KEY_EACH_REGION,DateTimeFormatter.ofPattern("yyyy-MM-dd").format(yesterday),regionId);
+
+                redisCache.set(key,Map);
+
+            }
+
+        });
+
+        countyMapList.stream().forEach(Map->{
+
+            String regionId = (String)Map.get("regionId");
+
+            if(!StringUtils.isEmpty(regionId)) {
+
+                resultMap.put(regionId,Map);
+
+                String key = String.join(":",Constants.AVG_DATE_KEY_EACH_REGION,DateTimeFormatter.ofPattern("yyyy-MM-dd").format(yesterday),regionId);
+
+                redisCache.set(key,Map);
+            }
+        });
+    }
+
+
+    @Override
+    public void getAvgSpeciesDateResultByRegionCode(LocalDateTime yesterday) {
+
+        String redisKey = Constants.AVG_DATE_KEY_EACH_REGION;
+
+        String datePattern = DateTimeFormatter.ofPattern("yyyy-MM-dd").format(yesterday);
+
+        LocalDateTime endDateTime = yesterday.plus(1, ChronoUnit.DAYS);
+
+        ProvinceCacheUtil.newInstance().getProvinceList().parallelStream().forEach(ProvinceVo -> {
+
+            String regionId = ProvinceVo.getRegionId();
+
+            String regionName = ProvinceVo.getRegionName();
+
+            String key = String.join(":", redisKey, datePattern,regionId);
+
+            if(!redisCache.exists(key)) {
+
+                Map provinceMap = stationDetailCopyMapper.getEveryDayByProvinceOrCity(yesterday, endDateTime, regionId + "%");
+
+                if (null == provinceMap) {
+
+                    provinceMap = new LinkedHashMap();
+
+                }
+
+                provinceMap.put("regionId", regionId);
+
+                provinceMap.put("regionName", regionName);
+
+                provinceMap.put("regionType", 1);
+
+                redisCache.set(String.join(":", redisKey, datePattern, regionId), provinceMap);
+
+            }
+
+        });
+
+        CityCacheUtil.newInstance().getCityList().parallelStream().forEach(CityVo -> {
+
+            String regionId = CityVo.getRegionId();
+
+            String regionName = CityVo.getRegionName();
+
+            String key = String.join(":", redisKey, datePattern, regionId);
+
+            if(!redisCache.exists(String.join(":", redisKey, datePattern,regionId))) {
+
+                Map cityMap = stationDetailCopyMapper.getEveryDayByProvinceOrCity(yesterday, endDateTime, regionId + "%");
+
+                if(cityMap == null) {
+
+                    cityMap = new LinkedHashMap();
+                }
+
+                cityMap.put("regionId",CityVo.getRegionId());
+
+                cityMap.put("regionName",CityVo.getRegionName());
+
+                cityMap.put("regionType",2);
+
+                redisCache.set(String.join(":", redisKey, datePattern, regionId), cityMap);
+
+            }
+
+        });
+
+        CountyCacheUtil.newInstance().getCountyList().parallelStream().forEach(CountyVo -> {
+
+            String regionId = CountyVo.getRegionId();
+
+            String regionName = CountyVo.getRegionName();
+
+            String key = String.join(":", redisKey, datePattern, regionId);
+
+            if(!redisCache.exists(String.join(":", redisKey, datePattern,regionId))) {
+
+                Map countyMap = stationDetailCopyMapper.getEveryDayRegionCode(yesterday, endDateTime, regionId);
+
+                if (countyMap == null) {
+
+                    countyMap = new LinkedHashMap();
+
+                }
+
+                countyMap.put("regionId", regionId);
+
+                countyMap.put("regionName", regionName);
+
+                countyMap.put("regionType", 3);
+
+                redisCache.set(String.join(":", redisKey, datePattern, regionId), countyMap);
+
+            }
+
+        });
+
     }
 }

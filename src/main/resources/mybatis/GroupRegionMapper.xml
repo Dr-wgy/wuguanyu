@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.makenv.mapper.GroupRegionMapper">
+  <resultMap id="BaseResultMap" type="com.makenv.domain.GroupRegion">
+    <id column="groupId" jdbcType="VARCHAR" property="groupId" />
+    <result column="value" jdbcType="VARCHAR" property="value" />
+    <result column="description" jdbcType="VARCHAR" property="description" />
+  </resultMap>
+  <sql id="Base_Column_List">
+    groupId, value, description
+  </sql>
+  <select id="selectByPrimaryKey" parameterType="java.lang.String" resultMap="BaseResultMap">
+    select 
+    <include refid="Base_Column_List" />
+    from group_region
+    where groupId = #{groupId,jdbcType=VARCHAR}
+  </select>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.String">
+    delete from group_region
+    where groupId = #{groupId,jdbcType=VARCHAR}
+  </delete>
+  <insert id="insert" parameterType="com.makenv.domain.GroupRegion">
+    insert into group_region (groupId, value, description
+      )
+    values (#{groupId,jdbcType=VARCHAR}, #{value,jdbcType=VARCHAR}, #{description,jdbcType=VARCHAR}
+      )
+  </insert>
+  <insert id="insertSelective" parameterType="com.makenv.domain.GroupRegion">
+    insert into group_region
+    <trim prefix="(" suffix=")" suffixOverrides=",">
+      <if test="groupId != null">
+        groupId,
+      </if>
+      <if test="value != null">
+        value,
+      </if>
+      <if test="description != null">
+        description,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides=",">
+      <if test="groupId != null">
+        #{groupId,jdbcType=VARCHAR},
+      </if>
+      <if test="value != null">
+        #{value,jdbcType=VARCHAR},
+      </if>
+      <if test="description != null">
+        #{description,jdbcType=VARCHAR},
+      </if>
+    </trim>
+  </insert>
+  <update id="updateByPrimaryKeySelective" parameterType="com.makenv.domain.GroupRegion">
+    update group_region
+    <set>
+      <if test="value != null">
+        value = #{value,jdbcType=VARCHAR},
+      </if>
+      <if test="description != null">
+        description = #{description,jdbcType=VARCHAR},
+      </if>
+    </set>
+    where groupId = #{groupId,jdbcType=VARCHAR}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="com.makenv.domain.GroupRegion">
+    update group_region
+    set value = #{value,jdbcType=VARCHAR},
+      description = #{description,jdbcType=VARCHAR}
+    where groupId = #{groupId,jdbcType=VARCHAR}
+  </update>
+
+  <select id="getAllGroupRegionCode" resultMap="BaseResultMap">
+    select
+      groupId,description
+    from group_region
+  </select>
+</mapper>

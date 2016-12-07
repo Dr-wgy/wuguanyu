@@ -1,37 +1,21 @@
 package com.makenv.service.impl;
 
 import com.makenv.cache.RedisCache;
-import com.makenv.config.TaskExecutorConfig;
-import com.makenv.service.AsyncService;
 import com.makenv.service.ScheduledTaskService;
 import com.makenv.service.StationDetailService;
-import com.makenv.task.DateTask;
 import com.makenv.task.HourTask;
-import com.makenv.task.Task;
-import com.makenv.task.TaskGroup;
-import com.sun.tools.doclets.formats.html.SourceToHTMLConverter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.cache.interceptor.CacheInterceptor;
 import org.springframework.data.redis.core.RedisTemplate;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Service;
 
-import javax.annotation.PostConstruct;
 import javax.annotation.Resource;
-import javax.validation.constraints.NotNull;
-import java.text.SimpleDateFormat;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
-import java.time.temporal.ChronoField;
 import java.time.temporal.ChronoUnit;
-import java.util.*;
-import java.util.concurrent.Executor;
-import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
 
 /**
  * Created by wgy on 2016/8/9.
@@ -54,9 +38,6 @@ import java.util.concurrent.TimeUnit;
 
     @Resource
     private StationDetailService stationDetailService;
-
-/*    @Autowired
-    private AsyncService asyncService;*/
 
 
     @Override
@@ -93,4 +74,10 @@ import java.util.concurrent.TimeUnit;
         }
 
     }
+
+    /*@Scheduled(cron = "0 0 2 ? * *")
+    public void fixTimeExecutionInBaseData() {
+
+
+    }*/
 }

@@ -1,0 +1,279 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.makenv.mapper.StationDetailCopyMapper">
+
+<sql id="species">
+    AQI, Area, CO,
+    NO2,  O3,
+    O3_8h, PM10,
+    PM2_5, SO2,
+    StationCode,
+    TimePoint
+</sql>
+
+<!-- <select id="getEveryDayRegionCode" resultType="java.util.LinkedHashMap">
+    select
+        <include refid="com.makenv.mapper.StationDetailMapper.avgSpeciesNoAQI"/>
+    from
+    (
+        select
+            <include refid="species"/>
+        from (
+        select
+           <include refid="species"/>
+        from PM_25 where TimePoint &gt;= #{startTime} and TimePoint &lt; #{endTime} and regionId = #{regionId} union all
+        select
+            <include refid="species"/>
+        from pm_25_JJJ where TimePoint &gt;= #{startTime} and TimePoint &lt; #{endTime} and regionId = #{regionId}
+        ) temp GROUP BY StationCode
+    ) temp1
+
+</select>-->
+
+
+    <!--<select id="getEveryDayByProvinceOrCity" resultType="java.util.LinkedHashMap">
+        select
+            <include refid="com.makenv.mapper.StationDetailMapper.avgSpeciesNoAQI"/>
+        from
+        (
+            select
+                <include refid="species"/>
+            from (
+            select
+            <include refid="species"/>
+            from PM_25 where TimePoint &gt;= #{startTime} and TimePoint &lt; #{endTime} and regionId like #{regionId} union all
+            select
+            <include refid="species"/>
+            from pm_25_JJJ where TimePoint &gt;= #{startTime} and TimePoint &lt; #{endTime} and regionId like #{regionId}
+            ) temp GROUP BY StationCode
+        ) temp1
+
+
+    </select>-->
+
+   <select id="getAvgSpeciesResultByCounty"  resultType="java.util.LinkedHashMap">
+
+       select
+       AVG(SO2) AS SO2,
+       AVG(NO2) AS NO2,
+       regionId,
+       AVG(PM2_5) AS PM2_5,
+       AVG(PM10) AS PM10,
+       AVG(CO) AS CO,
+       AVG(O3_8h) AS O3_8h,
+       AVG(O3) AS O3,
+       DATE_FORMAT(TimePoint,'%Y-%m-%d %H:%i:%S') as timePoint
+       from PM_25  where TimePoint = #{timePoint} GROUP BY regionId
+    </select>
+
+    <select id="getAvgSpeciesResultByProvince" resultType="java.util.LinkedHashMap">
+
+        select
+            AVG(SO2) AS SO2,
+            AVG(NO2) AS NO2,
+            left(regionId,2) as regionId,
+            AVG(PM2_5) AS PM2_5,
+            AVG(PM10) AS PM10,
+            AVG(CO) AS CO,
+            AVG(O3_8h) AS O3_8h,
+            AVG(O3) AS O3,
+            DATE_FORMAT(TimePoint,'%Y-%m-%d %H:%i:%S') as timePoint
+        from PM_25  where TimePoint = #{timePoint} GROUP BY left(regionId,2)
+
+    </select>
+
+    <select id="getAvgSpeciesResultByCity" resultType="java.util.LinkedHashMap">
+
+        select
+            AVG(SO2) AS SO2,
+            AVG(NO2) AS NO2,
+            left(regionId,4) as regionId,
+            AVG(PM2_5) AS PM2_5,
+            AVG(PM10) AS PM10,
+            AVG(CO) AS CO,
+            AVG(O3_8h) AS O3_8h,
+            AVG(O3) AS O3,
+            DATE_FORMAT(TimePoint,'%Y-%m-%d %H:%i:%S') as timePoint
+        from PM_25  where TimePoint = #{timePoint} GROUP BY left(regionId,4)
+
+    </select>
+
+    <select id="getAvgSpeciesResultByCounty2" resultType="java.util.LinkedHashMap">
+
+        select
+        AVG(SO2) AS SO2,
+        AVG(NO2) AS NO2,
+        regionId,
+        AVG(PM2_5) AS PM2_5,
+        AVG(PM10) AS PM10,
+        AVG(CO) AS CO,
+        AVG(O3_8h) AS O3_8h,
+        AVG(O3) AS O3,
+        DATE_FORMAT(TimePoint,'%Y-%m-%d %H:%i:%S') as timePoint
+        from PM_25  where TimePoint = #{timePoint} and regionId = #{regionId}
+
+    </select>
+
+    <select id="getAvgSpeciesResultByProvinceOrCity2">
+
+        select
+        AVG(SO2) AS SO2,
+        AVG(NO2) AS NO2,
+        regionId,
+        AVG(PM2_5) AS PM2_5,
+        AVG(PM10) AS PM10,
+        AVG(CO) AS CO,
+        AVG(O3_8h) AS O3_8h,
+        AVG(O3) AS O3,
+        DATE_FORMAT(TimePoint,'%Y-%m-%d %H:%i:%S') as timePoint
+        from PM_25  where TimePoint = #{timePoint} and regionId like #{regionId} GROUP BY regionId
+
+    </select>
+
+
+    <select id="getAvgSpeciesResultByProvinceOrCity1"  resultType="java.util.LinkedHashMap">
+
+        select
+        AVG(SO2) AS SO2,
+        AVG(NO2) AS NO2,
+        regionId,
+        AVG(PM2_5) AS PM2_5,
+        AVG(PM10) AS PM10,
+        AVG(CO) AS CO,
+        AVG(O3_8h) AS O3_8h,
+        AVG(O3) AS O3,
+        DATE_FORMAT(TimePoint,'%Y-%m-%d %H:%i:%S') as timePoint
+        from PM_25  where TimePoint = #{timePoint} and regionId like #{regionId}
+
+    </select>
+
+    <select id="getEveryDayByProvince" resultType="java.util.LinkedHashMap">
+
+        select
+            AVG(SO2) AS SO2,
+            AVG(NO2) AS NO2,
+            left(regionId,2) as regionId,
+            AVG(PM2_5) AS PM2_5,
+            AVG(PM10) AS PM10,
+            AVG(CO) AS CO,
+            AVG(O3_8h) AS O3_8h,
+            AVG(O3) AS O3,
+            DATE_FORMAT(TimePoint,'%Y-%m-%d %H:%i:%S') as timePoint
+        from PM_25  where TimePoint &gt;= #{startTime} and TimePoint &lt; #{endTime}
+        <if test="regionCodes != null and regionCodes.size()!=0 ">
+            and
+            <foreach item="regionId" collection="regionCodes" open="(" close=")" separator="or">
+                regionId like CONCAT(#{regionId},'%')
+            </foreach>
+
+        </if>
+        GROUP BY left(regionId,2)
+    </select>
+
+
+    <select id="getEveryDayByCity" resultType="java.util.LinkedHashMap">
+
+        select
+            AVG(SO2) AS SO2,
+            AVG(NO2) AS NO2,
+            left(regionId,4) as regionId,
+            AVG(PM2_5) AS PM2_5,
+            AVG(PM10) AS PM10,
+            AVG(CO) AS CO,
+            AVG(O3_8h) AS O3_8h,
+            AVG(O3) AS O3,
+            DATE_FORMAT(TimePoint,'%Y-%m-%d %H:%i:%S') as timePoint
+        from PM_25  where TimePoint &gt;= #{startTime} and TimePoint &lt; #{endTime}
+        <if test="regionCodes != null and regionCodes.size()!=0 ">
+            and
+            <foreach item="regionId" collection="regionCodes" open="(" close=")" separator="or">
+                regionId like CONCAT(#{regionId},'%')
+            </foreach>
+
+        </if>
+        GROUP BY left(regionId,4)
+    </select>
+
+    <select id="getEveryDayByCounty" resultType="java.util.LinkedHashMap">
+        select
+            AVG(SO2) AS SO2,
+            AVG(NO2) AS NO2,
+            regionId as regionId,
+            AVG(PM2_5) AS PM2_5,
+            AVG(PM10) AS PM10,
+            AVG(CO) AS CO,
+            AVG(O3_8h) AS O3_8h,
+            AVG(O3) AS O3,
+            DATE_FORMAT(TimePoint,'%Y-%m-%d %H:%i:%S') as timePoint
+        from PM_25  where TimePoint &gt;= #{startTime} and TimePoint &lt; #{endTime} and regionId In
+        <foreach item="regionId" collection="regionCodes" open="(" close=")" separator=",">
+            #{regionId}
+        </foreach>
+        GROUP BY regionId
+    </select>
+
+    <select id="getAvgSpeciesResultByProvinceInDate" resultType="java.util.LinkedHashMap">
+        select
+            AVG(SO2) AS SO2,
+            AVG(NO2) AS NO2,
+            left(regionId,2) as regionId,
+            AVG(PM2_5) AS PM2_5,
+            AVG(PM10) AS PM10,
+            AVG(CO) AS CO,
+            AVG(O3_8h) AS O3_8h,
+            AVG(O3) AS O3,
+            DATE_FORMAT(TimePoint,'%Y-%m-%d') as timePoint
+        from PM_25  where  TimePoint &gt;= #{startDateTime} and TimePoint &lt; #{endDateTime} GROUP BY left(regionId,2)
+
+    </select>
+
+    <select id="getAvgSpeciesResultByCityInDate" resultType="java.util.LinkedHashMap">
+        select
+        AVG(SO2) AS SO2,
+        AVG(NO2) AS NO2,
+        left(regionId,4) as regionId,
+        AVG(PM2_5) AS PM2_5,
+        AVG(PM10) AS PM10,
+        AVG(CO) AS CO,
+        AVG(O3_8h) AS O3_8h,
+        AVG(O3) AS O3,
+        DATE_FORMAT(TimePoint,'%Y-%m-%d') as timePoint
+        from PM_25  where  TimePoint &gt;= #{startDateTime} and TimePoint &lt; #{endDateTime} GROUP BY left(regionId,4)
+    </select>
+
+    <select id="getAvgSpeciesResultByCountyInDate" resultType="java.util.LinkedHashMap">
+        select
+            AVG(SO2) AS SO2,
+            AVG(NO2) AS NO2,
+            regionId,
+            AVG(PM2_5) AS PM2_5,
+            AVG(PM10) AS PM10,
+            AVG(CO) AS CO,
+            AVG(O3_8h) AS O3_8h,
+            AVG(O3) AS O3,
+            DATE_FORMAT(TimePoint,'%Y-%m-%d') as timePoint
+        from PM_25  where  TimePoint &gt;= #{startDateTime} and TimePoint &lt; #{endDateTime} GROUP BY regionId
+    </select>
+
+   <!-- <select id="getAvgSpeciesResultByProvinceOrCity"  resultType="java.util.LinkedHashMap">
+
+        select
+        <include refid="com.makenv.mapper.StationDetailMapper.avgSpeciesNoAQI"/>
+        from (
+        select
+        <include refid="species"/>
+        from (
+        select
+        <include refid="species"/>
+        from PM_25 where TimePoint = #{timePoint} and regionId like #{regionId} and StationCode is not null
+        union all
+        select
+        <include refid="species"/>
+        from pm_25_JJJ where TimePoint = #{timePoint} and regionId like #{regionId} and StationCode is not null
+        ) temp GROUP BY StationCode
+        ) temp2
+
+    </select>-->
+
+
+</mapper>

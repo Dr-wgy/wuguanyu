@@ -1,9 +1,9 @@
 server:
-  port: 8380
+  port: 8381
 logging:
   path: D:\ideaworkspace\obs\logs
 spring:
-  datasource:
+  datasource1:
     url: jdbc:mysql://166.111.42.46:3306/china?allowMultiQueries=true&autoReconnect=true
     username: curr
     password: Je5i2E5En1mE

@@ -5,7 +5,7 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>com.makenv.org</groupId>
-    <artifactId>obs_1.0_beta_2016_0803</artifactId>
+    <artifactId>obs_1.1.2_beta_2016_0803</artifactId>
     <version>1.0-SNAPSHOT</version>
     <!--统一配置版本号-->
     <properties>
@@ -135,11 +135,6 @@
             <version>1.0.0</version>
         </dependency>
 
-<!--        <dependency>
-            <groupId>javax.time</groupId>
-            <artifactId>jsr-310-ri</artifactId>
-        </dependency>-->
-
         <dependency>
             <groupId>com.fasterxml.jackson.datatype</groupId>
             <artifactId>jackson-datatype-jsr310</artifactId>
@@ -153,6 +148,19 @@
             <version>1.9.2</version>
         </dependency>
 
+        <!--定时器-->
+        <dependency>
+            <groupId>org.quartz-scheduler</groupId>
+            <artifactId>quartz</artifactId>
+            <version>2.2.3</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.mybatis.generator</groupId>
+            <artifactId>mybatis-generator-core</artifactId>
+            <version>1.3.5</version>
+        </dependency>
+
     </dependencies>
     <build>
         <plugins>
@@ -164,6 +172,11 @@
                 <configuration>
                     <source>${maven.compiler.source}</source>
                     <target>${maven.compiler.target}</target>
+                    <compilerArguments>
+                        <bootclasspath>
+                            ${java.home}\lib\rt.jar;${java.home}\lib\javaws.jar
+                        </bootclasspath>
+                    </compilerArguments>
                 </configuration>
             </plugin>
 <!--          添加Spring-boot的编译插件 -->
@@ -172,7 +185,30 @@
                 <artifactId>spring-boot-maven-plugin</artifactId>
                 <version>1.2.3.RELEASE</version>
             </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-jar-plugin</artifactId>
+                <configuration>
+                    <archive>
+                        <manifest>
+                            <mainClass>com.makenv.MakenObsApplication</mainClass>
+                        </manifest>
+                    </archive>
+                </configuration>
+            </plugin>
         </plugins>
+        <!-- 消除配置文件-->
+        <!--<resources>
+            <resource>
+                <directory>src/main/resources</directory>
+                <excludes>
+                    <exclude>**/*.yml</exclude>
+                    <exclude>**/*.properties</exclude>
+                    <exclude>**/mybatis</exclude>
+                    <exclude>**/*.xml</exclude>
+                </excludes>
+            </resource>
+        </resources>-->
     </build>
 
 </project>

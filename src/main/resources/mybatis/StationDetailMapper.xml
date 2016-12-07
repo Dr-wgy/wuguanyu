@@ -39,13 +39,28 @@
     SO2_24h, StationCode, TimePoint
   </sql>
 
+  <sql id="selectColumn">
+    CO, CO_24h,NO2, NO2_24h, O3, O3_24h,
+    O3_8h, O3_8h_24h, PM10,
+    PM10_24h, PM2_5, PM2_5_24h, SO2,
+    SO2_24h,StationCode, TimePoint
+  </sql>
+
   <sql id="commonSelf1">
     AVG(AQI), Area, AVG(CO), AVG(CO_24h),
     ID, Latitude, Longitude,
     AVG(NO2), AVG(NO2_24h), AVG(O3), AVG(O3_24h),
-    AVG(O3_8h), AVG(O3_8h_24h), OrderId, PM10,
+    AVG(O3_8h), AVG(O3_8h_24h), OrderId, AVG(PM10),
     AVG(PM10_24h), AVG(PM2_5), AVG(PM2_5_24h), PositionName,
     PrimaryPollutant, Quality, AVG(SO2),
+    AVG(SO2_24h), StationCode, TimePoint
+  </sql>
+
+  <sql id="commonSelf1NoAQI">
+    AVG(CO), AVG(CO_24h),
+    AVG(NO2), AVG(NO2_24h), AVG(O3), AVG(O3_24h),
+    AVG(O3_8h), AVG(O3_8h_24h), AVG(PM10),
+    AVG(PM10_24h), AVG(PM2_5), AVG(PM2_5_24h),AVG(SO2),
     AVG(SO2_24h), StationCode, TimePoint
   </sql>
 
@@ -57,6 +72,16 @@
     AVG(CO) AS CO,
     AVG(O3_8h) AS O3_8h,
     AVG(AQI) AS AQI,
+    AVG(O3) AS O3
+  </sql>
+
+  <sql id="avgSpeciesNoAQI">
+    AVG(SO2) AS SO2,
+    AVG(NO2) AS NO2,
+    AVG(PM2_5) AS PM2_5,
+    AVG(PM10) AS PM10,
+    AVG(CO) AS CO,
+    AVG(O3_8h) AS O3_8h,
     AVG(O3) AS O3
   </sql>
 
@@ -77,8 +102,8 @@
       AVG(PM2_5)>75 as PM2_5 ,
       AVG(PM10)>150 as PM10 ,
       AVG(CO)>4 as CO ,
-      MAX(O3_8h)>160 as O3_8h,
-      MAX(O3)>200 as O3
+      AVG(O3_8h)>160 as O3_8h,
+      AVG(O3)>200 as O3
   </sql>
 
   <sql id="sumSpecies">
@@ -571,12 +596,12 @@
 
   <select id="getAvgResultByStas" resultType="java.util.LinkedHashMap">
      select
-        <include refid="avgSpecies"/>
+        <include refid="avgSpeciesNoAQI"/>
      from (
      select
-      <include refid="allColumn"/>
+      <include refid="selectColumn"/>
     from ${tableName}
-      where  TimePoint &gt;= #{startTime} and TimePoint &lt;= #{endTime}
+      where  TimePoint &gt;= #{startTime} and TimePoint &lt; #{endTime}
       and StationCode in
       <foreach item="station" collection="stationList" open="(" close=")" separator=",">
         #{station}
@@ -584,9 +609,9 @@
     <if test="repeatCodes!=null">
     union all
     select
-      <include refid="allColumn"/>
+      <include refid="selectColumn"/>
     from pm_25_JJJ
-      where  TimePoint &gt;= #{startTime} and TimePoint &lt;= #{endTime}
+      where  TimePoint &gt;= #{startTime} and TimePoint &lt; #{endTime}
       and StationCode in
       <foreach item="station" collection="stationList" open="(" close=")" separator=",">
         #{station}
@@ -594,10 +619,10 @@
       <if test="repeatCodes.size()!=0">
         union all
         select
-        <include refid="commonSelf1"/>
+        <include refid="commonSelf1NoAQI"/>
         from (
         select
-        <include refid="allColumn"/>
+        <include refid="selectColumn"/>
         from PM_25
         <where>
           TimePoint &gt;=#{startTime}
@@ -609,7 +634,7 @@
         </where>
         union all
         select
-        <include refid="allColumn"/>
+        <include refid="selectColumn"/>
         from pm_25_JJJ
         <where>
           TimePoint &gt;=#{startTime}
@@ -1080,6 +1105,10 @@
 
   <select id="getMaxTimePoint" resultType="String">
       select DATE_FORMAT(max(TimePoint),"%Y-%m-%d %H:%i:%s") from (select MAX(TimePoint) as TimePoint from pm_25_JJJ union all select MAX(TimePoint) as TimePoint from PM_25) temp
+  </select>
+
+  <select id="getMinTimePoint" resultType="String">
+    select DATE_FORMAT(min(TimePoint),"%Y-%m-%d %H:%i:%s") from (select MAX(TimePoint) as TimePoint from pm_25_JJJ union all select MAX(TimePoint) as TimePoint from PM_25) temp
   </select>
 
 </mapper>

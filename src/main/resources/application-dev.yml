@@ -1,5 +1,5 @@
 server:
-  port: 8081
+  port: 8380
 #说明日志文件在哪里
 logging:
   path: D:\ideaworkspace\obs\logs
@@ -8,9 +8,9 @@ spring:
     serialization:
       WRITE_DATES_AS_TIMESTAMPS: false
   datasource1:
-    url: jdbc:mysql://166.111.42.46:3306/china?allowMultiQueries=true&autoReconnect=true
-    username: curr
-    password: Je5i2E5En1mE
+    url: jdbc:mysql://127.0.0.1:3306/china?allowMultiQueries=true&autoReconnect=true&useUnicode=true&characterEncoding=utf-8
+    username: root
+    password: 123456
     driver-class: com.mysql.jdbc.Driver
     testWhileIdle : true
     validationQuery: SELECT 1

@@ -81,9 +81,8 @@ public class SelfController extends BaseController {
 
     }
 
-    @RequestMapping(value="/bulidCache",method = RequestMethod.GET)
-    public void bulidCache(){
+    @RequestMapping(value="/buildCache",method = RequestMethod.GET)
+    public void bulidCache() {
 
-        scheduledTaskService.fixTimeExecution();
     }
 }

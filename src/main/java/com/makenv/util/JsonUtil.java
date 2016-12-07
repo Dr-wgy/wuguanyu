@@ -15,7 +15,6 @@ public class JsonUtil {
 
     private static final ObjectMapper objectMapper = new ObjectMapper();
 
-
     private static Object typeFactory;
 
     public static String writeJson(Object obj) {

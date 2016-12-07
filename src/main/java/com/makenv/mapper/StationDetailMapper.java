@@ -3,11 +3,9 @@ package com.makenv.mapper;
 import com.makenv.condition.StationDetailCondition;
 import com.makenv.domain.StationDetail;
 import com.makenv.vo.CityParamVo;
-import com.makenv.vo.RankAreaData;
 import org.apache.ibatis.annotations.Param;
 
 import java.time.LocalDateTime;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -57,4 +55,6 @@ public interface StationDetailMapper {
     String getMaxTimePoint();
 
     Map<String,Object> getAvgResultByStas(@Param("tableName") String tableName, @Param("startTime") LocalDateTime startTime, @Param("endTime") LocalDateTime endTime, @Param("stationList") List stationList, @Param("repeatCodes")List repeatCodes);
+
+    String getMinTimePoint();
 }

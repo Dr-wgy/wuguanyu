@@ -35,6 +35,8 @@ public class BaseController {
 
         logger.info("Exception", error);
 
+        error.printStackTrace();
+
         map.put(INFO, error.getMessage()+" : "+error.getCause());
 
         map.put(RESULT, FAILED);
