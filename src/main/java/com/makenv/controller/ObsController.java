@@ -357,7 +357,7 @@ public class ObsController extends BaseController {
 
         map.put(RESULT,SUCCESS);
 
-        map.put(DATA,resultMap);
+        //map.put(DATA,resultMap);
 
         return map;
     }
